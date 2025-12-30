@@ -22,6 +22,7 @@ const configuracionRoutes = require('./routes/configuracionRoutes');
 // Inicializar Express  
 const app = express();  
 
+app.set('trust proxy', 1);
 
 // ruta para obtener imagenes estaticas
 app.use('/assets/images', express.static(path.resolve(__dirname, './mi-carpeta-imagenes'))); // Servir imágenes estáticas desde la carpeta especificada
