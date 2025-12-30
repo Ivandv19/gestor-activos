@@ -33,7 +33,7 @@ app.use(morgan('dev')); // Logs en consola
 
 // Configuración CORS (solo permite front en localhost:4200)  
 app.use(cors({  
-  origin: 'http://localhost:4200',  
+  origin: process.env.FRONTEND_URL || '*', // Usa la variable o permite todo (*) por seguridad temporal 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],  
   allowedHeaders: ['Content-Type', 'Authorization'],  
 }));  
