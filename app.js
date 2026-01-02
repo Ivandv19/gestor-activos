@@ -24,9 +24,13 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-app.use(helmet({
-  contentSecurityPolicy: false, 
-}));
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false, 
+    crossOriginResourcePolicy: { policy: "cross-origin" } 
+  })
+);
 
 // ruta para obtener imagenes estaticas
 app.use('/assets/images', express.static(path.resolve(__dirname, './mi-carpeta-imagenes'))); // Servir imágenes estáticas desde la carpeta especificada
