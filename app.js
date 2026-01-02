@@ -24,6 +24,10 @@ const app = express();
 
 app.set('trust proxy', 1);
 
+app.use(helmet({
+  contentSecurityPolicy: false, 
+}));
+
 // ruta para obtener imagenes estaticas
 app.use('/assets/images', express.static(path.resolve(__dirname, './mi-carpeta-imagenes'))); // Servir imágenes estáticas desde la carpeta especificada
 
