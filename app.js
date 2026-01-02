@@ -37,7 +37,7 @@ app.use('/assets/images', express.static(path.resolve(__dirname, './mi-carpeta-i
 
 // Middlewares básicos  
 app.use(express.json()); // Parseo de JSON  
-app.use(helmet()); // Headers de seguridad  
+
 app.use(morgan('dev')); // Logs en consola  
 
 // Configuración CORS (solo permite front en localhost:4200)  
