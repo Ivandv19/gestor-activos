@@ -1,8 +1,8 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const asignacionesController = require('../controllers/asignacionesController');
-const authenticate = require('../middleware/authenticate');
-const checkRole = require('../middleware/checkRole'); // Middleware de verificación de roles
+const asignacionesController = require("../controllers/asignacionesController");
+const authenticate = require("../middleware/authenticate");
+const checkRole = require("../middleware/checkRole"); // Middleware de verificación de roles
 
 /**
  * @swagger
@@ -153,9 +153,9 @@ const checkRole = require('../middleware/checkRole'); // Middleware de verificac
  *         - fecha_asignacion
  */
 router.get(
-  '/activos-disponibles',
-  authenticate,
-  asignacionesController.getActivosDisponibles
+	"/activos-disponibles",
+	authenticate,
+	asignacionesController.getActivosDisponibles,
 );
 
 /**
@@ -323,7 +323,7 @@ router.get(
  *           - id: 2
  *             nombre: "Sucursal Norte"
  *         nombreActivo: "Laptop Dell XPS 15"
- * 
+ *
  *     Usuario:
  *       type: object
  *       properties:
@@ -333,7 +333,7 @@ router.get(
  *         nombre:
  *           type: string
  *           example: "Juan Pérez"
- * 
+ *
  *     TipoActivo:
  *       type: object
  *       properties:
@@ -343,7 +343,7 @@ router.get(
  *         nombre:
  *           type: string
  *           example: "Laptop"
- * 
+ *
  *     Proveedor:
  *       type: object
  *       properties:
@@ -353,7 +353,7 @@ router.get(
  *         nombre:
  *           type: string
  *           example: "Dell Technologies"
- * 
+ *
  *     Ubicacion:
  *       type: object
  *       properties:
@@ -363,28 +363,28 @@ router.get(
  *         nombre:
  *           type: string
  *           example: "Oficina Central"
- * 
+ *
  *     ErrorValidacion:
  *       type: object
  *       properties:
  *         error:
  *           type: string
  *           example: "El ID proporcionado no es válido"
- * 
+ *
  *     ErrorNoEncontrado:
  *       type: object
  *       properties:
  *         error:
  *           type: string
  *           example: "Activo no encontrado"
- * 
+ *
  *     ErrorBaseDatos:
  *       type: object
  *       properties:
  *         error:
  *           type: string
  *           example: "Error al obtener los usuarios"
- * 
+ *
  *     ErrorServidor:
  *       type: object
  *       properties:
@@ -393,9 +393,9 @@ router.get(
  *           example: "Error interno del servidor"
  */
 router.get(
-  '/datos-auxiliares/:id',
-  authenticate,
-  asignacionesController.obtenerDatosAuxiliares
+	"/datos-auxiliares/:id",
+	authenticate,
+	asignacionesController.obtenerDatosAuxiliares,
 );
 
 /**
@@ -512,7 +512,7 @@ router.get(
  *         - ubicacion_id
  *         - fecha_asignacion
  */
-router.get('/:id', authenticate, asignacionesController.getAsignacionPorId);
+router.get("/:id", authenticate, asignacionesController.getAsignacionPorId);
 
 /**
  * @swagger
@@ -655,7 +655,7 @@ router.get('/:id', authenticate, asignacionesController.getAsignacionPorId);
  *         - usuario
  *         - fecha_asignacion
  */
-router.get('/', authenticate, asignacionesController.getAsignaciones);
+router.get("/", authenticate, asignacionesController.getAsignaciones);
 
 /**
  * @swagger
@@ -787,10 +787,10 @@ router.get('/', authenticate, asignacionesController.getAsignaciones);
  *         fecha_asignacion: "2023-05-15T10:30:00Z"
  */
 router.post(
-  '/',
-  authenticate,
-  checkRole('Administrador'),
-  asignacionesController.createAsignacion
+	"/",
+	authenticate,
+	checkRole("Administrador"),
+	asignacionesController.createAsignacion,
 );
 
 /**
@@ -914,10 +914,10 @@ router.post(
  *         ubicacion_id: 3
  */
 router.put(
-  '/:id',
-  authenticate,
-  checkRole('Administrador'),
-  asignacionesController.updateAsignacion
+	"/:id",
+	authenticate,
+	checkRole("Administrador"),
+	asignacionesController.updateAsignacion,
 );
 
 /**
@@ -962,7 +962,7 @@ router.put(
  *                     nombre_activo:
  *                       type: string
  *                       example: "Laptop Dell XPS 13"
- * 
+ *
  *       401:
  *         description: No autorizado (token inválido o no proporcionado)
  *         content:
@@ -996,13 +996,10 @@ router.put(
  */
 
 router.delete(
-  '/:id',
-  authenticate,
-  checkRole('Administrador'),
-  asignacionesController.deleteAsignacion
+	"/:id",
+	authenticate,
+	checkRole("Administrador"),
+	asignacionesController.deleteAsignacion,
 );
-
-
-
 
 module.exports = router;

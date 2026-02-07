@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const historialController = require('../controllers/historialController');
-const authenticate = require('../middleware/authenticate');
+const historialController = require("../controllers/historialController");
+const authenticate = require("../middleware/authenticate");
 
 /**
  * @swagger
@@ -133,9 +133,9 @@ const authenticate = require('../middleware/authenticate');
  *         - usuario_responsable
  */
 router.get(
-  '/activos/:id',
-  authenticate,
-  historialController.getHistorialActivo
+	"/activos/:id",
+	authenticate,
+	historialController.getHistorialActivo,
 );
 
 /**
@@ -265,9 +265,9 @@ router.get(
  *               nullable: true
  */
 router.post(
-  '/activos/:id',
-  authenticate,
-  historialController.registrarAccionHistorial
+	"/activos/:id",
+	authenticate,
+	historialController.registrarAccionHistorial,
 );
 
 /**
@@ -308,14 +308,14 @@ router.post(
  *                         example: "Juan Pérez"
  *                         description: Nombre del usuario
  *               example:
- *                 acciones: 
+ *                 acciones:
  *                   - {nombre: "Asignación"}
  *                   - {nombre: "Modificación"}
  *                   - {nombre: "Reparación"}
  *                 usuarios:
  *                   - {id: 1, nombre: "Juan Pérez"}
  *                   - {id: 2, nombre: "María García"}
- * 
+ *
  *       404:
  *         description: No se encontraron datos auxiliares
  *         content:
@@ -330,7 +330,7 @@ router.post(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorServidor'
- * 
+ *
  * components:
  *   schemas:
  *     ErrorAccionesNoEncontradas:
@@ -342,7 +342,7 @@ router.post(
  *         errorCode:
  *           type: string
  *           example: "HIST_001"
- * 
+ *
  *     ErrorUsuariosNoEncontrados:
  *       type: object
  *       properties:
@@ -352,7 +352,7 @@ router.post(
  *         errorCode:
  *           type: string
  *           example: "HIST_002"
- * 
+ *
  *     ErrorServidor:
  *       type: object
  *       properties:
@@ -363,6 +363,10 @@ router.post(
  *           type: string
  *           example: "HIST_500"
  */
-router.get('/filtros-auxiliares',authenticate, historialController.getDatosAuxiliares);
+router.get(
+	"/filtros-auxiliares",
+	authenticate,
+	historialController.getDatosAuxiliares,
+);
 
 module.exports = router;

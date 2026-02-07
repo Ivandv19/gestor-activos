@@ -1,9 +1,8 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const configuracionController = require('../controllers/configuracionController');
-const authenticate = require('../middleware/authenticate'); 
-const imageUpload = require('../middleware/imageUpload'); // 
-
+const configuracionController = require("../controllers/configuracionController");
+const authenticate = require("../middleware/authenticate");
+const imageUpload = require("../middleware/imageUpload"); //
 
 /**
  * @swagger
@@ -76,9 +75,9 @@ const imageUpload = require('../middleware/imageUpload'); //
  *                   example: "Detalle del error (solo en desarrollo)"
  */
 router.get(
-  '/aplicacion',
-  authenticate,
-  configuracionController.getConfiguracionAplicacion
+	"/aplicacion",
+	authenticate,
+	configuracionController.getConfiguracionAplicacion,
 );
 
 /**
@@ -205,11 +204,10 @@ router.get(
  *         formato_moneda: "$0,0.00"
  */
 router.put(
-  '/aplicacion',
-  authenticate,
-  configuracionController.updateConfiguracionAplicacion
+	"/aplicacion",
+	authenticate,
+	configuracionController.updateConfiguracionAplicacion,
 );
-
 
 /**
  * @swagger
@@ -295,7 +293,7 @@ router.put(
  *         - email
  *         - departamento
  */
-router.get('/perfil', authenticate, configuracionController.getPerfilUsuario);
+router.get("/perfil", authenticate, configuracionController.getPerfilUsuario);
 
 /**
  * @swagger
@@ -378,7 +376,7 @@ router.get('/perfil', authenticate, configuracionController.getPerfilUsuario);
  *           type: string
  *           format: binary
  *           description: Imagen de perfil (JPEG/PNG/GIF)
- * 
+ *
  *     ErrorResponse:
  *       type: object
  *       properties:
@@ -393,9 +391,9 @@ router.get('/perfil', authenticate, configuracionController.getPerfilUsuario);
  *           example: "Detalle técnico (solo en desarrollo)"
  */
 router.put(
-  '/perfil',
-  authenticate,
-  configuracionController.updatePerfilUsuario
+	"/perfil",
+	authenticate,
+	configuracionController.updatePerfilUsuario,
 );
 
 /**
@@ -450,7 +448,11 @@ router.put(
  *                   example: "Error al subir la imagen"
  */
 
-router.post('/upload', authenticate, imageUpload.imageUploadMiddleware, configuracionController.uploadImage);
-
+router.post(
+	"/upload",
+	authenticate,
+	imageUpload.imageUploadMiddleware,
+	configuracionController.uploadImage,
+);
 
 module.exports = router;

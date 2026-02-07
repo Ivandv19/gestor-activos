@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const reporteController = require('../controllers/reporteController');
-const authenticate = require('../middleware/authenticate');
+const reporteController = require("../controllers/reporteController");
+const authenticate = require("../middleware/authenticate");
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ const authenticate = require('../middleware/authenticate');
  *           example: true
  */
 
-router.get('/tipos', authenticate, reporteController.getTiposReporte);
+router.get("/tipos", authenticate, reporteController.getTiposReporte);
 
 /**
  * @swagger
@@ -162,7 +162,7 @@ router.get('/tipos', authenticate, reporteController.getTiposReporte);
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/ItemListaSimple'
- * 
+ *
  *     ItemListaSimple:
  *       type: object
  *       properties:
@@ -173,7 +173,11 @@ router.get('/tipos', authenticate, reporteController.getTiposReporte);
  *           type: string
  *           example: "Ejemplo"
  */
-router.get('/datos-auxiliares', authenticate,  reporteController.getDatosAuxiliares);
+router.get(
+	"/datos-auxiliares",
+	authenticate,
+	reporteController.getDatosAuxiliares,
+);
 
 /**
  * @swagger
@@ -279,7 +283,7 @@ router.get('/datos-auxiliares', authenticate,  reporteController.getDatosAuxilia
  *               format: date
  *               example: "2024-12-31"
  *               description: Filtra registros con fecha igual o anterior.
- * 
+ *
  *     ReporteResponse:
  *       type: object
  *       properties:
@@ -338,6 +342,6 @@ router.get('/datos-auxiliares', authenticate,  reporteController.getDatosAuxilia
  *               description: Datos detallados del reporte.
  */
 
-router.post('/generar', authenticate, reporteController.generarReporte);
+router.post("/generar", authenticate, reporteController.generarReporte);
 
 module.exports = router;

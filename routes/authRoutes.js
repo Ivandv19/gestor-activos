@@ -1,10 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authController = require('../controllers/authController');
-const loginLimiter = require('../middleware/limitarIntentos'); // Middleware para limitar intentos de inicio de sesión
-const authenticate = require('../middleware/authenticate'); // Middleware de autenticación
-const checkRole = require('../middleware/checkRole'); // Middleware de verificación de roles
-
+const authController = require("../controllers/authController");
+const loginLimiter = require("../middleware/limitarIntentos"); // Middleware para limitar intentos de inicio de sesión
+const authenticate = require("../middleware/authenticate"); // Middleware de autenticación
+const checkRole = require("../middleware/checkRole"); // Middleware de verificación de roles
 
 /**
  * @swagger
@@ -111,8 +110,12 @@ const checkRole = require('../middleware/checkRole'); // Middleware de verificac
  *         rol: "Usuario"
  */
 
-router.post('/registro',authenticate, checkRole('Administrador'),  authController.registro);
-
+router.post(
+	"/registro",
+	authenticate,
+	checkRole("Administrador"),
+	authController.registro,
+);
 
 /**
  * @swagger
@@ -232,8 +235,7 @@ router.post('/registro',authenticate, checkRole('Administrador'),  authControlle
  *         contrasena: "Password123!"
  */
 
-router.post('/login', loginLimiter, authController.login);
-
+router.post("/login", loginLimiter, authController.login);
 
 /**
  * @swagger
@@ -299,7 +301,6 @@ router.post('/login', loginLimiter, authController.login);
  *                   example: "Error al validar el token"
  */
 
-
 /**
  * @swagger
  * components:
@@ -311,6 +312,11 @@ router.post('/login', loginLimiter, authController.login);
  *       description: Ingrese el token JWT en el formato 'Bearer {token}'
  */
 
-router.get('/test', authenticate, checkRole('Administrador'), authController.test);
+router.get(
+	"/test",
+	authenticate,
+	checkRole("Administrador"),
+	authController.test,
+);
 
 module.exports = router;

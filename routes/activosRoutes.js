@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const activosController = require('../controllers/activosController');
-const authenticate = require('../middleware/authenticate'); // Middleware de autenticación
-const checkRole = require('../middleware/checkRole'); // Middleware de verificación de roles
-const imageUpload = require('../middleware/imageUpload'); // 
+const activosController = require("../controllers/activosController");
+const authenticate = require("../middleware/authenticate"); // Middleware de autenticación
+const checkRole = require("../middleware/checkRole"); // Middleware de verificación de roles
+const imageUpload = require("../middleware/imageUpload"); //
 
 /**
  * @swagger
@@ -80,7 +80,7 @@ const imageUpload = require('../middleware/imageUpload'); //
  *                   example: 'Mensaje detallado del error...'
  */
 
-router.patch('/baja/:id', authenticate, activosController.darDeBajaActivo);
+router.patch("/baja/:id", authenticate, activosController.darDeBajaActivo);
 
 /**
  * @swagger
@@ -304,7 +304,7 @@ router.patch('/baja/:id', authenticate, activosController.darDeBajaActivo);
  *         - tipo_id
  *         - estado
  */
-router.get('/activos', authenticate, activosController.getActivos);
+router.get("/activos", authenticate, activosController.getActivos);
 
 /**
  * @swagger
@@ -552,7 +552,7 @@ router.get('/activos', authenticate, activosController.getActivos);
  *         descripcion_garantia: "Garantía extendida por 3 años adicionales"
  */
 
-router.get('/activos/:id', authenticate, activosController.getActivoById);
+router.get("/activos/:id", authenticate, activosController.getActivoById);
 
 /**
  * @swagger
@@ -772,10 +772,10 @@ router.get('/activos/:id', authenticate, activosController.getActivoById);
  */
 
 router.post(
-  '/activos',
-  authenticate,
-  checkRole('Administrador'),
-  activosController.createActivo
+	"/activos",
+	authenticate,
+	checkRole("Administrador"),
+	activosController.createActivo,
 );
 
 /**
@@ -1017,10 +1017,10 @@ router.post(
  */
 
 router.put(
-  '/activos/:id',
-  authenticate,
-  checkRole('Administrador'),
-  activosController.updateActivo
+	"/activos/:id",
+	authenticate,
+	checkRole("Administrador"),
+	activosController.updateActivo,
 );
 
 /**
@@ -1090,10 +1090,10 @@ router.put(
  *                   example: "Error al eliminar el activo"
  */
 router.delete(
-  '/activos/:id',
-  authenticate,
-  checkRole('Administrador'),
-  activosController.deleteActivo
+	"/activos/:id",
+	authenticate,
+	checkRole("Administrador"),
+	activosController.deleteActivo,
 );
 
 /**
@@ -1235,9 +1235,9 @@ router.delete(
  *             nombre: "Asignado"
  */
 router.get(
-  '/datos-auxiliares',
-  authenticate,
-  activosController.obtenerDatosAuxiliares
+	"/datos-auxiliares",
+	authenticate,
+	activosController.obtenerDatosAuxiliares,
 );
 
 /**
@@ -1297,9 +1297,9 @@ router.get(
  */
 
 router.post(
-  '/validar-etiqueta-serial',
-  authenticate,
-  activosController.validarEtiquetaSerial
+	"/validar-etiqueta-serial",
+	authenticate,
+	activosController.validarEtiquetaSerial,
 );
 
 /**
@@ -1362,6 +1362,11 @@ router.post(
  *                   example: "Error al subir la imagen"
  */
 
-router.post('/upload', authenticate, imageUpload.imageUploadMiddleware, activosController.uploadImage);
+router.post(
+	"/upload",
+	authenticate,
+	imageUpload.imageUploadMiddleware,
+	activosController.uploadImage,
+);
 
 module.exports = router;

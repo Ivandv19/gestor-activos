@@ -1,8 +1,8 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const garantiasController = require('../controllers/garantiasController');
-const authenticate = require('../middleware/authenticate'); 
-const checkRole = require('../middleware/checkRole'); 
+const garantiasController = require("../controllers/garantiasController");
+const authenticate = require("../middleware/authenticate");
+const checkRole = require("../middleware/checkRole");
 
 /**
  * @swagger
@@ -149,7 +149,7 @@ const checkRole = require('../middleware/checkRole');
  *         - fecha_fin
  *         - estado
  */
-router.get('/', authenticate, garantiasController.getGarantias);
+router.get("/", authenticate, garantiasController.getGarantias);
 
 /**
  * @swagger
@@ -316,7 +316,12 @@ router.get('/', authenticate, garantiasController.getGarantias);
  *         estado: "Vigente"
  *         descripcion: "Garantía extendida por 3 años adicionales"
  */
-router.post('/', authenticate, checkRole('Administrador'), garantiasController.createGarantia);
+router.post(
+	"/",
+	authenticate,
+	checkRole("Administrador"),
+	garantiasController.createGarantia,
+);
 
 /**
  * @swagger
@@ -476,7 +481,12 @@ router.post('/', authenticate, checkRole('Administrador'), garantiasController.c
  *         costo: 399.99
  *         condiciones: "Cobertura premium incluye daños accidentales"
  */
-router.put('/:id', authenticate, checkRole('Administrador'), garantiasController.updateGarantia);
+router.put(
+	"/:id",
+	authenticate,
+	checkRole("Administrador"),
+	garantiasController.updateGarantia,
+);
 
 /**
  * @swagger
@@ -527,6 +537,11 @@ router.put('/:id', authenticate, checkRole('Administrador'), garantiasController
  *                   type: string
  *                   example: "Detalle del error (solo en desarrollo)"
  */
-router.delete('/:id', authenticate, checkRole('Administrador'), garantiasController.deleteGarantia);
+router.delete(
+	"/:id",
+	authenticate,
+	checkRole("Administrador"),
+	garantiasController.deleteGarantia,
+);
 
 module.exports = router;

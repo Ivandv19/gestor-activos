@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const dashboardController = require('../controllers/dashboardController');
-const authenticate = require('../middleware/authenticate'); 
+const dashboardController = require("../controllers/dashboardController");
+const authenticate = require("../middleware/authenticate");
 
 /**
  * @swagger
@@ -94,8 +94,7 @@ const authenticate = require('../middleware/authenticate');
  *                   description: Opcional, para entornos de desarrollo
  */
 
- 
-router.get('/resumen', authenticate, dashboardController.getResumen);
+router.get("/resumen", authenticate, dashboardController.getResumen);
 
 /**
  * @swagger
@@ -145,6 +144,6 @@ router.get('/resumen', authenticate, dashboardController.getResumen);
  *                   example: "Error al obtener las alertas del dashboard"
  */
 //
-router.get('/alertas', authenticate,  dashboardController.getAlertas);
+router.get("/alertas", authenticate, dashboardController.getAlertas);
 
 module.exports = router;
