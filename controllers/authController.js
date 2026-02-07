@@ -1,5 +1,5 @@
 const db = require("../config/db");
-const bcrypt = require("bcryptjs");
+const hashService = require("../services/hashService");
 const jwt = require("jsonwebtoken");
 
 exports.registro = async (req, res) => {
@@ -65,9 +65,9 @@ exports.registro = async (req, res) => {
 				.json({ error: "El correo electrónico ya está registrado" });
 		}
 
-		// Hashear la contraseña
-		console.log("[REGISTRO] Hash de contraseña");
-		const hashedPassword = await bcrypt.hash(contrasena, 10);
+		// Hashear la contraseña usando el microservicio Argon2id
+		console.log("[REGISTRO] Hash de contraseña via Microservicio");
+		const hashedPassword = await hashService.hash(contrasena);
 
 		// Guardar el usuario en la base de datos
 		console.log("[REGISTRO] Guardando usuario en BD");
@@ -132,8 +132,8 @@ exports.login = async (req, res) => {
 			});
 		}
 
-		// 4. Verificar contraseña
-		const isMatch = await bcrypt.compare(contrasena, user.contrasena);
+		// 4. Verificar contraseña usando el microservicio Argon2id
+		const isMatch = await hashService.verify(contrasena, user.contrasena);
 		if (!isMatch) {
 			console.log("[LOGIN] Error: Contraseña incorrecta");
 			return res.status(401).json({

@@ -1,7 +1,7 @@
 const fs = require("fs").promises;
 const path = require("path");
 const db = require("../config/db");
-const bcrypt = require("bcrypt");
+const hashService = require("../services/hashService");
 let cachedConfig = null;
 
 exports.getConfiguracionAplicacion = async (req, res) => {
@@ -213,22 +213,23 @@ exports.updatePerfilUsuario = async (req, res) => {
 		}
 
 		// Verificar la contraseña actual
-		const [usuario] = await db.query(
+		const [usuarios] = await db.query(
 			"SELECT contrasena FROM Usuarios WHERE id = ?",
 			[userId],
 		);
-		if (usuario.length === 0) {
+		if (usuarios.length === 0) {
 			return res.status(404).json({ error: "Usuario no encontrado." });
 		}
 
-		const contrasenaValida = await bcrypt.compare(
+		// 3. Validar la contraseña actual usando el microservicio Argon2id
+		const isMatch = await hashService.verify(
 			contrasena_actual,
-			usuario[0].contrasena,
+			usuarios[0].contrasena,
 		);
-		if (!contrasenaValida) {
+		if (!isMatch) {
 			return res
-				.status(400)
-				.json({ error: "La contraseña actual es incorrecta." });
+				.status(401)
+				.json({ message: "La contraseña actual es incorrecta." });
 		}
 
 		// Validar que al menos un campo para actualizar esté presente
@@ -261,12 +262,6 @@ exports.updatePerfilUsuario = async (req, res) => {
 			}
 		}
 
-		// Encriptar la nueva contraseña si se proporciona
-		let hashedPassword = null;
-		if (nueva_contrasena) {
-			hashedPassword = await bcrypt.hash(nueva_contrasena, 10);
-		}
-
 		// Construir el objeto de actualización dinámicamente
 		const updates = [];
 		const values = [];
@@ -283,9 +278,11 @@ exports.updatePerfilUsuario = async (req, res) => {
 			updates.push("departamento = ?");
 			values.push(departamento);
 		}
-		if (hashedPassword) {
+		if (nueva_contrasena) {
+			// Hashear con el microservicio Argon2id
+			const hashedNewPassword = await hashService.hash(nueva_contrasena);
 			updates.push("contrasena = ?");
-			values.push(hashedPassword);
+			values.push(hashedNewPassword);
 		}
 		if (foto_url) {
 			updates.push("foto_url = ?");

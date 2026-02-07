@@ -5,6 +5,7 @@ const helmet = require("helmet"); // Seguridad HTTP
 const cors = require("cors"); // Permisos CORS
 require("dotenv").config(); // Variables de entorno
 const path = require("path");
+const pool = require("./config/db"); // O como se llame tu carpeta/archivo de conexión
 
 // Swagger (Documentación API)
 const { swaggerDocs, swaggerUi } = require("./swagger/swagger");
@@ -62,8 +63,10 @@ app.use("/garantias", garantiasRoutes); // Rutas para manejo de garantías
 app.use("/reportes", reporteRoutes); // Rutas para generación de reportes
 app.use("/configuracion", configuracionRoutes); // Rutas para configuración del sistema
 
+
+
 // Inicialización del servidor
-const PORT = process.env.PORT || 3000; // Usa el puerto de .env o 3000 por defecto
+const PORT = process.env.SERVER_PORT || 3000; // Usa el puerto de .env o 3000 por defecto
 app.listen(PORT, () => {
 	console.log(`✅ Servidor ejecutándose en http://localhost:${PORT}`);
 	console.log(
