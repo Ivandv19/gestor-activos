@@ -55,7 +55,7 @@ exports.registro = async (req, res) => {
 		// Verificar si el usuario ya existe
 		console.log("[REGISTRO] Verificando usuario existente en BD");
 		const [existingUser] = await db.query(
-			"SELECT * FROM Usuarios WHERE email = ?",
+			"SELECT * FROM usuarios WHERE email = ?",
 			[email],
 		);
 		if (existingUser.length > 0) {
@@ -72,7 +72,7 @@ exports.registro = async (req, res) => {
 		// Guardar el usuario en la base de datos
 		console.log("[REGISTRO] Guardando usuario en BD");
 		await db.query(
-			"INSERT INTO Usuarios (nombre, email, contrasena, departamento, fecha_ingreso, rol) VALUES (?, ?, ?, ?, ?, ?)",
+			"INSERT INTO usuarios (nombre, email, contrasena, departamento, fecha_ingreso, rol) VALUES (?, ?, ?, ?, ?, ?)",
 			[nombre, email, hashedPassword, departamento, fecha_ingreso, rol],
 		);
 
@@ -119,7 +119,7 @@ exports.login = async (req, res) => {
 
 		// 3. Buscar usuario
 		const [users] = await db.query(
-			"SELECT id, email, contrasena, rol, foto_url FROM Usuarios WHERE email = ?",
+			"SELECT id, email, contrasena, rol, foto_url FROM usuarios WHERE email = ?",
 			[email],
 		);
 		const user = users[0];

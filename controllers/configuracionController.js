@@ -160,7 +160,7 @@ exports.getPerfilUsuario = async (req, res) => {
 
 		// Consulta para obtener los datos del perfil del usuario
 		const [usuarios] = await db.query(
-			"SELECT nombre, email, departamento, foto_url FROM Usuarios WHERE id = ?",
+			"SELECT nombre, email, departamento, foto_url FROM usuarios WHERE id = ?",
 			[userId],
 		);
 
@@ -214,7 +214,7 @@ exports.updatePerfilUsuario = async (req, res) => {
 
 		// Verificar la contraseña actual
 		const [usuarios] = await db.query(
-			"SELECT contrasena FROM Usuarios WHERE id = ?",
+			"SELECT contrasena FROM usuarios WHERE id = ?",
 			[userId],
 		);
 		if (usuarios.length === 0) {
@@ -297,7 +297,7 @@ exports.updatePerfilUsuario = async (req, res) => {
 		}
 
 		// Actualizar los datos del perfil
-		const query = `UPDATE Usuarios SET ${updates.join(", ")} WHERE id = ?`;
+		const query = `UPDATE usuarios SET ${updates.join(", ")} WHERE id = ?`;
 		values.push(userId);
 
 		await db.query(query, values);

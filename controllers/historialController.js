@@ -61,7 +61,7 @@ exports.getHistorialActivo = async (req, res) => {
         u.nombre AS usuario_responsable, 
         h.detalles 
        FROM Historial h 
-       JOIN Usuarios u ON h.usuario_responsable = u.id 
+       JOIN usuarios u ON h.usuario_responsable = u.id 
        WHERE h.activo_id = ? ${whereClause}
        ORDER BY h.fecha ${direccionOrden}  
        LIMIT ? OFFSET ?`,
@@ -72,7 +72,7 @@ exports.getHistorialActivo = async (req, res) => {
 		const [totalRows] = await db.query(
 			`SELECT COUNT(*) AS total 
        FROM Historial h
-       JOIN Usuarios u ON h.usuario_responsable = u.id
+       JOIN usuarios u ON h.usuario_responsable = u.id
        WHERE h.activo_id = ? ${whereClause}`,
 			queryParams,
 		);
@@ -112,7 +112,7 @@ exports.getDatosAuxiliares = async (req, res) => {
 		// Consulta para obtener usuarios
 		const [usuarios] = await db.query(`
       SELECT DISTINCT u.id, u.nombre 
-      FROM Usuarios u
+      FROM usuarios u
       JOIN Historial h ON u.id = h.usuario_responsable
       ORDER BY u.nombre ASC
     `);

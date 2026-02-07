@@ -60,7 +60,7 @@ exports.getAsignaciones = async (req, res) => {
       FROM Asignaciones a
       JOIN Activos ac ON a.activo_id = ac.id
       JOIN Tipos t ON ac.tipo_id = t.id -- Unir con la tabla Tipos para obtener el tipo
-      JOIN Usuarios u ON a.usuario_id = u.id
+      JOIN usuarios u ON a.usuario_id = u.id
       JOIN Ubicaciones ub ON a.ubicacion_id = ub.id
       ${whereClause}
       ORDER BY a.id ${direccionOrden} -- Ordenamiento
@@ -76,7 +76,7 @@ exports.getAsignaciones = async (req, res) => {
       FROM Asignaciones a
       JOIN Activos ac ON a.activo_id = ac.id
       JOIN Tipos t ON ac.tipo_id = t.id
-      JOIN Usuarios u ON a.usuario_id = u.id
+      JOIN usuarios u ON a.usuario_id = u.id
       JOIN Ubicaciones ub ON a.ubicacion_id = ub.id
       ${whereClause}
     `;
@@ -129,7 +129,7 @@ exports.createAsignacion = async (req, res) => {
 			`
             SELECT 
                 (SELECT COUNT(*) FROM Activos WHERE id = ?) AS activo_existe,
-                (SELECT COUNT(*) FROM Usuarios WHERE id = ?) AS usuario_existe,
+                (SELECT COUNT(*) FROM usuarios WHERE id = ?) AS usuario_existe,
                 (SELECT COUNT(*) FROM Ubicaciones WHERE id = ?) AS ubicacion_existe
         `,
 			[activo_id, usuario_id, ubicacion_id],
@@ -150,7 +150,7 @@ exports.createAsignacion = async (req, res) => {
 			activo_id,
 		]);
 		const [usuario] = await db.query(
-			"SELECT nombre FROM Usuarios WHERE id = ?",
+			"SELECT nombre FROM usuarios WHERE id = ?",
 			[usuario_id],
 		);
 		const [ubicacion] = await db.query(
@@ -238,11 +238,11 @@ exports.getAsignacionPorId = async (req, res) => {
         SELECT 
           Asignaciones.*,
           Activos.nombre AS activo_nombre,
-          Usuarios.nombre AS usuario_nombre,
+          usuarios.nombre AS usuario_nombre,
           Ubicaciones.nombre AS ubicacion_nombre
         FROM Asignaciones
         LEFT JOIN Activos ON Asignaciones.activo_id = Activos.id
-        LEFT JOIN Usuarios ON Asignaciones.usuario_id = Usuarios.id
+        LEFT JOIN usuarios ON Asignaciones.usuario_id = usuarios.id
         LEFT JOIN Ubicaciones ON Asignaciones.ubicacion_id = Ubicaciones.id
         WHERE Asignaciones.id = ?
       `,
@@ -309,7 +309,7 @@ exports.updateAsignacion = async (req, res) => {
 			[asignacionExistente[0].activo_id],
 		);
 		const [usuarioAnterior] = await db.query(
-			"SELECT nombre FROM Usuarios WHERE id = ?",
+			"SELECT nombre FROM usuarios WHERE id = ?",
 			[asignacionExistente[0].usuario_id],
 		);
 		const [ubicacionAnterior] = await db.query(
@@ -332,7 +332,7 @@ exports.updateAsignacion = async (req, res) => {
 		let nuevoUsuarioNombre = usuarioAnterior[0].nombre; // Mantener el usuario anterior por defecto
 		if (usuario_id && usuario_id !== asignacionExistente[0].usuario_id) {
 			const [nuevoUsuario] = await db.query(
-				"SELECT nombre FROM Usuarios WHERE id = ?",
+				"SELECT nombre FROM usuarios WHERE id = ?",
 				[usuario_id],
 			);
 			if (nuevoUsuario.length === 0) {
@@ -622,7 +622,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		// Consulta para obtener los usuarios
 		let usuarios;
 		try {
-			[usuarios] = await db.query("SELECT id, nombre FROM Usuarios");
+			[usuarios] = await db.query("SELECT id, nombre FROM usuarios");
 		} catch (queryError) {
 			console.error("Error al consultar usuarios:", queryError);
 			return res.status(500).json({ error: "Error al obtener los usuarios" });

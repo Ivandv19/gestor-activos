@@ -35,7 +35,7 @@ exports.getDatosAuxiliares = async (req, res) => {
 	try {
 		// Consultas SQL para obtener los datos
 		const [tiposActivo] = await db.query("SELECT id, nombre FROM Tipos");
-		const [usuarios] = await db.query("SELECT id, nombre FROM Usuarios");
+		const [usuarios] = await db.query("SELECT id, nombre FROM usuarios");
 		const [ubicaciones] = await db.query("SELECT id, nombre FROM Ubicaciones");
 		const [proveedores] = await db.query("SELECT id, nombre FROM Proveedores");
 
@@ -105,7 +105,7 @@ exports.generarReporte = async (req, res) => {
 				queryBase = `
       SELECT u.nombre AS usuario, COUNT(a.id) AS cantidad
       FROM Asignaciones asig
-      JOIN Usuarios u ON asig.usuario_id = u.id
+      JOIN usuarios u ON asig.usuario_id = u.id
       JOIN Activos a ON asig.activo_id = a.id
       GROUP BY u.nombre;
     `;
@@ -133,7 +133,7 @@ exports.generarReporte = async (req, res) => {
       SELECT a.nombre AS activo, u.nombre AS usuario, asig.fecha_asignacion, asig.fecha_devolucion
       FROM Asignaciones asig
       JOIN Activos a ON asig.activo_id = a.id
-      JOIN Usuarios u ON asig.usuario_id = u.id
+      JOIN usuarios u ON asig.usuario_id = u.id
     `;
 				break;
 
@@ -399,7 +399,7 @@ exports.generarReporte = async (req, res) => {
 
 	async function getNombreUsuario(usuario_id) {
 		if (!usuario_id) return "Todos";
-		const [rows] = await db.query("SELECT nombre FROM Usuarios WHERE id = ?", [
+		const [rows] = await db.query("SELECT nombre FROM usuarios WHERE id = ?", [
 			usuario_id,
 		]);
 		return rows.length > 0 ? rows[0].nombre : "Desconocido";

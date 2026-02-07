@@ -68,7 +68,7 @@ exports.getActivos = async (req, res) => {
   LEFT JOIN Proveedores ON Activos.proveedor_id = Proveedores.id
   LEFT JOIN Ubicaciones ON Activos.ubicacion_id = Ubicaciones.id
   LEFT JOIN Asignaciones ON Activos.id = Asignaciones.activo_id
-  LEFT JOIN Usuarios ON Asignaciones.usuario_id = Usuarios.id
+  LEFT JOIN usuarios ON Asignaciones.usuario_id = usuarios.id
 `;
 		if (garantia_proxima === "true") {
 			// Agregar join condicional para la tabla Garantias
@@ -104,7 +104,7 @@ exports.getActivos = async (req, res) => {
         Tipos.nombre AS tipo,
         Proveedores.nombre AS proveedor,
         Ubicaciones.nombre AS ubicacion,
-        Usuarios.nombre AS usuario_asignado
+        usuarios.nombre AS usuario_asignado
       FROM Activos
       ${joins}
       ${whereClause}
@@ -158,14 +158,14 @@ exports.getActivoById = async (req, res) => {
         Tipos.nombre AS tipo_nombre,  
         Proveedores.nombre AS proveedor_nombre,  
         Ubicaciones.nombre AS ubicacion_nombre,
-        Usuarios.id AS dueno_id, 
-        Usuarios.nombre AS dueno_nombre,
+        usuarios.id AS dueno_id, 
+        usuarios.nombre AS dueno_nombre,
         Activos.condicion_fisica AS condicion_fisica  
       FROM Activos
       LEFT JOIN Tipos ON Activos.tipo_id = Tipos.id  
       LEFT JOIN Proveedores ON Activos.proveedor_id = Proveedores.id  
       LEFT JOIN Ubicaciones ON Activos.ubicacion_id = Ubicaciones.id  
-      LEFT JOIN Usuarios ON Activos.dueno_id = Usuarios.id  
+      LEFT JOIN usuarios ON Activos.dueno_id = usuarios.id  
       WHERE Activos.id = ?`,
 			[id],
 		);
@@ -668,7 +668,7 @@ exports.updateActivo = async (req, res) => {
 			[activoExistente[0].ubicacion_id],
 		);
 		const [duenoAnterior] = await db.query(
-			"SELECT nombre FROM Usuarios WHERE id = ?",
+			"SELECT nombre FROM usuarios WHERE id = ?",
 			[activoExistente[0].dueno_id],
 		);
 
@@ -787,7 +787,7 @@ exports.updateActivo = async (req, res) => {
 
 		if (dueno_id && dueno_id !== activoExistente[0].dueno_id) {
 			const [nuevoDueno] = await db.query(
-				"SELECT nombre FROM Usuarios WHERE id = ?",
+				"SELECT nombre FROM usuarios WHERE id = ?",
 				[dueno_id],
 			);
 			if (nuevoDueno.length > 0) {
@@ -1128,7 +1128,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		}
 
 		// Consulta para obtener los dueños (usuarios)
-		const [duenos] = await db.query("SELECT id, nombre FROM Usuarios");
+		const [duenos] = await db.query("SELECT id, nombre FROM usuarios");
 		if (!duenos || duenos.length === 0) {
 			return res
 				.status(404)
