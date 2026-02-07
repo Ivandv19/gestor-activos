@@ -10,7 +10,7 @@ exports.getResumen = async (req, res) => {
         SUM(CASE WHEN estado = 'Asignado' THEN 1 ELSE 0 END) AS activos_asignados,
         SUM(CASE WHEN estado = 'En mantenimiento' THEN 1 ELSE 0 END) AS activos_en_mantenimiento,
         SUM(CASE WHEN estado = 'Dado de baja' THEN 1 ELSE 0 END) AS activos_dados_de_baja
-      FROM Activos;
+      FROM activos;
     `);
 
 		// Si no hay activos registrados, devolver un mensaje específico
@@ -45,7 +45,7 @@ exports.getResumen = async (req, res) => {
         COALESCE(COUNT(a.id), 0) AS cantidad,
         YEAR(a.fecha_registro) AS ano
       FROM Meses m
-      LEFT JOIN Activos a 
+      LEFT JOIN activos a 
         ON MONTH(a.fecha_registro) = m.numero 
         AND a.fecha_registro >= ? AND a.fecha_registro <= ?
       GROUP BY m.mes, m.numero, YEAR(a.fecha_registro)
@@ -85,28 +85,28 @@ exports.getAlertas = async (req, res) => {
 		// Consulta para contar licencias próximas a vencer
 		const [licenciasProximas] = await pool.query(`
             SELECT COUNT(*) AS count
-            FROM Activos
+            FROM activos
             WHERE tipo_id = 2 AND fecha_vencimiento_licencia BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
         `);
 
 		// Consulta para contar garantías próximas a expirar
 		const [garantiasProximas] = await pool.query(`
             SELECT COUNT(*) AS count
-            FROM Garantias
+            FROM garantias
             WHERE fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
           `);
 
 		// Consulta para contar activos en mantenimiento
 		const [activosMantenimiento] = await pool.query(`
             SELECT COUNT(*) AS count
-            FROM Activos
+            FROM activos
             WHERE estado = 'En mantenimiento';
         `);
 
 		// Consulta para contar activos próximos a devolver
 		const [activosDevolver] = await pool.query(`
             SELECT COUNT(*) AS count
-            FROM Asignaciones
+            FROM asignaciones
             WHERE fecha_devolucion BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
         `);
 

@@ -187,7 +187,7 @@ exports.createAsignacion = async (req, res) => {
 		}
 
 		await db.query(
-			"INSERT INTO Historial (activo_id, accion, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?)",
+			"INSERT INTO historial (activo_id, accion, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?)",
 			[
 				activo_id,
 				"Activo asignado",
@@ -408,7 +408,7 @@ exports.updateAsignacion = async (req, res) => {
 		}
 
 		await db.query(
-			"INSERT INTO Historial (activo_id, accion, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?)",
+			"INSERT INTO historial (activo_id, accion, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?)",
 			[
 				asignacionExistente[0].activo_id,
 				"Asignación actualizada",
@@ -480,7 +480,7 @@ exports.deleteAsignacion = async (req, res) => {
 		const detalles = `Se desasignó el activo "${activo_nombre}" del usuario.`;
 
 		const insertHistorialQuery = `
-  INSERT INTO Historial (
+  INSERT INTO historial (
     activo_id,
     accion,
     usuario_responsable,

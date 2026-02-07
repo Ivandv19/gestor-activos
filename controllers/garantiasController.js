@@ -19,16 +19,16 @@ exports.getGarantias = async (req, res) => {
                    DATE_FORMAT(g.fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
                    DATE_FORMAT(g.fecha_fin, '%Y-%m-%d') AS fecha_fin,
                    g.costo, g.condiciones, g.estado, g.descripcion, g.nombre_garantia
-            FROM Garantias g
-            JOIN Activos a ON g.activo_id = a.id
-            JOIN ProveedoresGarantia pg ON g.proveedor_garantia_id = pg.id
+            FROM garantias g
+            JOIN activos a ON g.activo_id = a.id
+            JOIN proveedoresgarantia pg ON g.proveedor_garantia_id = pg.id
             LIMIT ? OFFSET ?
         `;
 		const [results] = await db.query(query, [limit, offset]);
 
 		// Recuento total para paginación
 		const [countResult] = await db.query(
-			"SELECT COUNT(*) AS total FROM Garantias",
+			"SELECT COUNT(*) AS total FROM garantias",
 		);
 		const total = countResult[0].total;
 
@@ -116,7 +116,7 @@ exports.createGarantia = async (req, res) => {
 
 		// Verificar que el activo y el proveedor existan en la base de datos
 		const [activo] = await db.query(
-			"SELECT id, nombre FROM Activos WHERE id = ?",
+			"SELECT id, nombre FROM activos WHERE id = ?",
 			[activo_id],
 		);
 		if (activo.length === 0) {
@@ -124,7 +124,7 @@ exports.createGarantia = async (req, res) => {
 		}
 
 		const [proveedor] = await db.query(
-			"SELECT id FROM ProveedoresGarantia WHERE id = ?",
+			"SELECT id FROM proveedoresgarantia WHERE id = ?",
 			[proveedor_garantia_id],
 		);
 		if (proveedor.length === 0) {
@@ -135,7 +135,7 @@ exports.createGarantia = async (req, res) => {
 
 		// Insertar la nueva garantía en la base de datos
 		const query = `
-            INSERT INTO Garantias (activo_id, proveedor_garantia_id, nombre_garantia, fecha_inicio, fecha_fin, costo, condiciones, estado, descripcion)
+            INSERT INTO garantias (activo_id, proveedor_garantia_id, nombre_garantia, fecha_inicio, fecha_fin, costo, condiciones, estado, descripcion)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 		const [result] = await db.query(query, [
@@ -161,7 +161,7 @@ exports.createGarantia = async (req, res) => {
 
 		try {
 			await db.query(
-				"INSERT INTO Historial (activo_id, accion, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?)",
+				"INSERT INTO historial (activo_id, accion, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?)",
 				[
 					activo_id, // ID del activo asociado
 					"Garantía registrada", // Acción realizada
@@ -236,7 +236,7 @@ exports.updateGarantia = async (req, res) => {
 
 		// Validar que la garantía exista
 		const [garantiaExistente] = await db.query(
-			"SELECT * FROM Garantias WHERE id = ?",
+			"SELECT * FROM garantias WHERE id = ?",
 			[id],
 		);
 		if (garantiaExistente.length === 0) {
@@ -244,7 +244,7 @@ exports.updateGarantia = async (req, res) => {
 		}
 
 		// Obtener el nombre del activo asociado
-		const [activo] = await db.query("SELECT nombre FROM Activos WHERE id = ?", [
+		const [activo] = await db.query("SELECT nombre FROM activos WHERE id = ?", [
 			garantiaExistente[0].activo_id,
 		]);
 		const nombreActivo = activo[0]?.nombre || "Activo desconocido";
@@ -295,7 +295,7 @@ exports.updateGarantia = async (req, res) => {
 		}
 
 		const query = `
-              UPDATE Garantias 
+              UPDATE garantias 
               SET ${Object.keys(fieldsToUpdate)
 								.map((key, index) => `${key} = ?`)
 								.join(", ")}
@@ -310,7 +310,7 @@ exports.updateGarantia = async (req, res) => {
 		}
 
 		await db.query(
-			"INSERT INTO Historial (activo_id, accion, fecha, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO historial (activo_id, accion, fecha, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?, ?)",
 			[
 				garantiaExistente[0].activo_id, // ID del activo asociado
 				"Garantía actualizada", // Acción realizada
@@ -326,7 +326,7 @@ exports.updateGarantia = async (req, res) => {
 
 		// Devolver una respuesta detallada con los datos actualizados
 		const [garantiaActualizada] = await db.query(
-			"SELECT * FROM Garantias WHERE id = ?",
+			"SELECT * FROM garantias WHERE id = ?",
 			[id],
 		);
 		res.json({
@@ -361,7 +361,7 @@ exports.updateGarantia = async (req, res) => {
 exports.deleteGarantia = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const query = "DELETE FROM Garantias WHERE id = ?";
+		const query = "DELETE FROM garantias WHERE id = ?";
 		await db.query(query, [id]);
 		res.json({ message: "Garantía eliminada correctamente" });
 	} catch (error) {
