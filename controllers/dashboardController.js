@@ -26,7 +26,7 @@ exports.getResumen = async (req, res) => {
 		// Consulta para obtener la tendencia mensual (incluyendo todos los meses)
 		const [tendenciaMensualResult] = await pool.query(
 			`
-      WITH Meses AS (
+      WITH meses AS (
         SELECT 'Ene' AS mes, 1 AS numero UNION ALL
         SELECT 'Feb', 2 UNION ALL
         SELECT 'Mar', 3 UNION ALL
@@ -44,7 +44,7 @@ exports.getResumen = async (req, res) => {
         m.mes,
         COALESCE(COUNT(a.id), 0) AS cantidad,
         YEAR(a.fecha_registro) AS ano
-      FROM Meses m
+      FROM meses m
       LEFT JOIN activos a 
         ON MONTH(a.fecha_registro) = m.numero 
         AND a.fecha_registro >= ? AND a.fecha_registro <= ?

@@ -143,7 +143,7 @@ exports.registrarAccionHistorial = async (req, res) => {
 
 	try {
 		// Verificar si el activo existe
-		const [activo] = await db.query("SELECT id FROM Activos WHERE id = ?", [
+		const [activo] = await db.query("SELECT id FROM activos WHERE id = ?", [
 			id,
 		]);
 		if (activo.length === 0) {
@@ -166,7 +166,7 @@ exports.registrarAccionHistorial = async (req, res) => {
 
 		// Insertar la nueva acción en el historial
 		const [result] = await db.query(
-			"INSERT INTO Historial (activo_id, accion, fecha, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO historial (activo_id, accion, fecha, usuario_responsable, usuario_asignado, ubicacion_nueva, detalles) VALUES (?, ?, ?, ?, ?, ?, ?)",
 			[
 				id,
 				accion,

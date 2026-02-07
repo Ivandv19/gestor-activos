@@ -946,7 +946,7 @@ exports.updateActivo = async (req, res) => {
 				const fechaFinFormateada = formatearFechaParaHistorial(fecha_fin);
 				const [nuevoProveedorGarantia] = proveedor_garantia_id
 					? await db.query(
-							"SELECT nombre FROM ProveedoresGarantia WHERE id = ?",
+							"SELECT nombre FROM proveedoresgarantia WHERE id = ?",
 							[proveedor_garantia_id],
 						)
 					: [null];
