@@ -31,31 +31,31 @@ exports.getActivos = async (req, res) => {
 
 		// Construcción de condiciones de búsqueda
 		if (search) {
-			whereClauses.push(`(Activos.nombre LIKE ? OR Activos.id LIKE ?)`); // Búsqueda en nombre o ID
+			whereClauses.push(`(activos.nombre LIKE ? OR activos.id LIKE ?)`); // Búsqueda en nombre o ID
 			queryParams.push(`%${search}%`, `%${search}%`); // Parámetros para LIKE
 		}
 
 		// Agregar filtros específicos si están presentes
 		if (tipo) {
-			whereClauses.push(`Activos.tipo_id = ?`); // Filtro por tipo
+			whereClauses.push(`activos.tipo_id = ?`); // Filtro por tipo
 			queryParams.push(tipo);
 		}
 		if (estado) {
-			whereClauses.push(`Activos.estado = ?`); // Filtro por estado
+			whereClauses.push(`activos.estado = ?`); // Filtro por estado
 			queryParams.push(estado);
 		}
 		if (ubicacion) {
-			whereClauses.push(`Activos.ubicacion_id = ?`); // Filtro por ubicación
+			whereClauses.push(`activos.ubicacion_id = ?`); // Filtro por ubicación
 			queryParams.push(ubicacion);
 		}
 		if (usuario_asignado) {
-			whereClauses.push(`Asignaciones.usuario_id = ?`); // Filtro por usuario
+			whereClauses.push(`asignaciones.usuario_id = ?`); // Filtro por usuario
 			queryParams.push(usuario_asignado);
 		}
 
 		if (licencia_proxima === "true") {
 			whereClauses.push(
-				`Activos.tipo_licencia IS NOT NULL AND Activos.fecha_vencimiento_licencia BETWEEN ? AND ?`, //Filtro por licencia próxima
+				`activos.tipo_licencia IS NOT NULL AND activos.fecha_vencimiento_licencia BETWEEN ? AND ?`, //Filtro por licencia próxima
 			);
 			queryParams.push(
 				fecha_inicio || new Date(),
@@ -64,19 +64,19 @@ exports.getActivos = async (req, res) => {
 		}
 		// Agregar joins condicionales
 		let joins = `
-  LEFT JOIN Tipos ON Activos.tipo_id = Tipos.id
-  LEFT JOIN Proveedores ON Activos.proveedor_id = Proveedores.id
-  LEFT JOIN Ubicaciones ON Activos.ubicacion_id = Ubicaciones.id
-  LEFT JOIN Asignaciones ON Activos.id = Asignaciones.activo_id
-  LEFT JOIN usuarios ON Asignaciones.usuario_id = usuarios.id
+  LEFT JOIN tipos ON activos.tipo_id = tipos.id
+  LEFT JOIN proveedores ON activos.proveedor_id = proveedores.id
+  LEFT JOIN ubicaciones ON activos.ubicacion_id = ubicaciones.id
+  LEFT JOIN asignaciones ON activos.id = asignaciones.activo_id
+  LEFT JOIN usuarios ON asignaciones.usuario_id = usuarios.id
 `;
 		if (garantia_proxima === "true") {
 			// Agregar join condicional para la tabla Garantias
-			joins += ` LEFT JOIN Garantias ON Activos.id = Garantias.activo_id`;
+			joins += ` LEFT JOIN garantias ON activos.id = garantias.activo_id`;
 
 			// Opción 2: Filtrar por fecha de vencimiento próxima (dentro de los próximos 30 días)
 
-			whereClauses.push(`Garantias.fecha_fin BETWEEN ? AND ?`);
+			whereClauses.push(`garantias.fecha_fin BETWEEN ? AND ?`);
 			queryParams.push(
 				new Date(), // Fecha actual
 				new Date(new Date().setDate(new Date().getDate() + 30)), // Fecha dentro de 30 días
@@ -84,7 +84,7 @@ exports.getActivos = async (req, res) => {
 		}
 
 		if (fecha_devolucion_proxima === "true") {
-			whereClauses.push(`Asignaciones.fecha_devolucion BETWEEN ? AND ?`); // Filtro por fecha de devolución próxima
+			whereClauses.push(`asignaciones.fecha_devolucion BETWEEN ? AND ?`); // Filtro por fecha de devolución próxima
 			queryParams.push(
 				fecha_inicio || new Date(),
 				fecha_fin || new Date(new Date().setDate(new Date().getDate() + 30)),
@@ -100,15 +100,15 @@ exports.getActivos = async (req, res) => {
 		// Consulta principal para obtener activos con joins
 		const [rows] = await db.query(
 			`SELECT 
-        Activos.*, 
-        Tipos.nombre AS tipo,
-        Proveedores.nombre AS proveedor,
-        Ubicaciones.nombre AS ubicacion,
+        activos.*, 
+        tipos.nombre AS tipo,
+        proveedores.nombre AS proveedor,
+        ubicaciones.nombre AS ubicacion,
         usuarios.nombre AS usuario_asignado
-      FROM Activos
+      FROM activos
       ${joins}
       ${whereClause}
-      ORDER BY Activos.id ${direccionOrden}  
+      ORDER BY activos.id ${direccionOrden}  
       LIMIT ? OFFSET ?`,
 			[...queryParams, limit, offset],
 		);
@@ -116,7 +116,7 @@ exports.getActivos = async (req, res) => {
 		// Consulta para contar el total de registros
 		const [totalRows] = await db.query(
 			`SELECT COUNT(*) AS total
-      FROM Activos
+      FROM activos
       ${joins}
       ${whereClause}`,
 			queryParams,
@@ -154,19 +154,19 @@ exports.getActivoById = async (req, res) => {
 		// Consulta SQL principal para obtener datos del activo con JOINs a tablas relacionadas
 		const [rows] = await db.query(
 			`SELECT 
-        Activos.*, 
-        Tipos.nombre AS tipo_nombre,  
-        Proveedores.nombre AS proveedor_nombre,  
-        Ubicaciones.nombre AS ubicacion_nombre,
+        activos.*, 
+        tipos.nombre AS tipo_nombre,  
+        proveedores.nombre AS proveedor_nombre,  
+        ubicaciones.nombre AS ubicacion_nombre,
         usuarios.id AS dueno_id, 
         usuarios.nombre AS dueno_nombre,
-        Activos.condicion_fisica AS condicion_fisica  
-      FROM Activos
-      LEFT JOIN Tipos ON Activos.tipo_id = Tipos.id  
-      LEFT JOIN Proveedores ON Activos.proveedor_id = Proveedores.id  
-      LEFT JOIN Ubicaciones ON Activos.ubicacion_id = Ubicaciones.id  
-      LEFT JOIN usuarios ON Activos.dueno_id = usuarios.id  
-      WHERE Activos.id = ?`,
+        activos.condicion_fisica AS condicion_fisica  
+      FROM activos
+      LEFT JOIN tipos ON activos.tipo_id = tipos.id  
+      LEFT JOIN proveedores ON activos.proveedor_id = proveedores.id  
+      LEFT JOIN ubicaciones ON activos.ubicacion_id = ubicaciones.id  
+      LEFT JOIN usuarios ON activos.dueno_id = usuarios.id  
+      WHERE activos.id = ?`,
 			[id],
 		);
 
@@ -179,11 +179,11 @@ exports.getActivoById = async (req, res) => {
 		// Consulta adicional para obtener información de garantías asociadas
 		const [garantiasRows] = await db.query(
 			`SELECT 
-        Garantias.*,
-        ProveedoresGarantia.nombre AS proveedor_garantia_nombre
-      FROM Garantias
-      LEFT JOIN ProveedoresGarantia ON Garantias.proveedor_garantia_id = ProveedoresGarantia.id
-      WHERE Garantias.activo_id = ?`,
+        garantias.*,
+        proveedoresgarantia.nombre AS proveedor_garantia_nombre
+      FROM garantias
+      LEFT JOIN proveedoresgarantia ON garantias.proveedor_garantia_id = proveedoresgarantia.id
+      WHERE garantias.activo_id = ?`,
 			[id],
 		);
 
@@ -346,7 +346,7 @@ exports.createActivo = async (req, res) => {
 		// Validación de unicidad para etiqueta serial (si se proporciona)
 		if (etiqueta_serial) {
 			const [existingSerial] = await db.query(
-				"SELECT id FROM Activos WHERE etiqueta_serial = ?",
+				"SELECT id FROM activos WHERE etiqueta_serial = ?",
 				[etiqueta_serial],
 			);
 			if (existingSerial.length > 0) {
@@ -452,7 +452,7 @@ exports.createActivo = async (req, res) => {
 		addField("condicion_fisica", condicion_fisica);
 
 		// Ejecutar inserción del activo
-		const query = `INSERT INTO Activos (${fields.join(", ")}) VALUES (${values.map(() => "?").join(", ")})`;
+		const query = `INSERT INTO activos (${fields.join(", ")}) VALUES (${values.map(() => "?").join(", ")})`;
 		const [result] = await db.query(query, values);
 
 		const activoId = result.insertId; // ID del nuevo activo
@@ -465,7 +465,7 @@ exports.createActivo = async (req, res) => {
 			fecha_fin_garantia
 		) {
 			await db.query(
-				`INSERT INTO Garantias 
+				`INSERT INTO garantias 
         (activo_id, proveedor_garantia_id, nombre_garantia, fecha_inicio, fecha_fin, costo, condiciones, estado, descripcion)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				[
@@ -486,7 +486,7 @@ exports.createActivo = async (req, res) => {
 		const comentariosDinamicos = `Activo "${nombre}" creado con estado "${estado}".`;
 
 		await db.query(
-			`INSERT INTO Historial (activo_id, accion, usuario_responsable, detalles)
+			`INSERT INTO historial (activo_id, accion, usuario_responsable, detalles)
       VALUES (?, ?, ?, ?)`,
 			[
 				activoId,
@@ -561,7 +561,7 @@ exports.updateActivo = async (req, res) => {
 	try {
 		// 1. VERIFICACIÓN INICIAL - Comprobar que el activo existe
 		const [activoExistente] = await db.query(
-			"SELECT * FROM Activos WHERE id = ?",
+			"SELECT * FROM activos WHERE id = ?",
 			[id],
 		);
 		if (activoExistente.length === 0) {
@@ -614,7 +614,7 @@ exports.updateActivo = async (req, res) => {
 		// Validación de unicidad para etiqueta serial
 		if (etiqueta_serial) {
 			const [existingSerial] = await db.query(
-				"SELECT id FROM Activos WHERE etiqueta_serial = ? AND id != ?",
+				"SELECT id FROM activos WHERE etiqueta_serial = ? AND id != ?",
 				[etiqueta_serial, id],
 			);
 			if (existingSerial.length > 0) {
@@ -625,7 +625,7 @@ exports.updateActivo = async (req, res) => {
 		}
 		// Validaciones de relaciones (claves foráneas)
 		if (tipo_id) {
-			const [tipoExists] = await db.query("SELECT id FROM Tipos WHERE id = ?", [
+			const [tipoExists] = await db.query("SELECT id FROM tipos WHERE id = ?", [
 				tipo_id,
 			]);
 			if (tipoExists.length === 0) {
@@ -635,7 +635,7 @@ exports.updateActivo = async (req, res) => {
 
 		if (proveedor_id) {
 			const [proveedorExists] = await db.query(
-				"SELECT id FROM Proveedores WHERE id = ?",
+				"SELECT id FROM proveedores WHERE id = ?",
 				[proveedor_id],
 			);
 			if (proveedorExists.length === 0) {
@@ -645,7 +645,7 @@ exports.updateActivo = async (req, res) => {
 
 		if (ubicacion_id) {
 			const [ubicacionExists] = await db.query(
-				"SELECT id FROM Ubicaciones WHERE id = ?",
+				"SELECT id FROM ubicaciones WHERE id = ?",
 				[ubicacion_id],
 			);
 			if (ubicacionExists.length === 0) {
@@ -656,15 +656,15 @@ exports.updateActivo = async (req, res) => {
 
 		// Obtener nombres de relaciones existentes para el historial
 		const [tipoAnterior] = await db.query(
-			"SELECT nombre FROM Tipos WHERE id = ?",
+			"SELECT nombre FROM tipos WHERE id = ?",
 			[activoExistente[0].tipo_id],
 		);
 		const [proveedorAnterior] = await db.query(
-			"SELECT nombre FROM Proveedores WHERE id = ?",
+			"SELECT nombre FROM proveedores WHERE id = ?",
 			[activoExistente[0].proveedor_id],
 		);
 		const [ubicacionAnterior] = await db.query(
-			"SELECT nombre FROM Ubicaciones WHERE id = ?",
+			"SELECT nombre FROM ubicaciones WHERE id = ?",
 			[activoExistente[0].ubicacion_id],
 		);
 		const [duenoAnterior] = await db.query(
@@ -742,7 +742,7 @@ exports.updateActivo = async (req, res) => {
 		// Registrar cambios para relaciones (con nombres)
 		if (tipo_id && tipo_id !== activoExistente[0].tipo_id) {
 			const [nuevoTipo] = await db.query(
-				"SELECT nombre FROM Tipos WHERE id = ?",
+				"SELECT nombre FROM tipos WHERE id = ?",
 				[tipo_id],
 			);
 			if (nuevoTipo.length > 0) {
@@ -757,7 +757,7 @@ exports.updateActivo = async (req, res) => {
 
 		if (proveedor_id && proveedor_id !== activoExistente[0].proveedor_id) {
 			const [nuevoProveedor] = await db.query(
-				"SELECT nombre FROM Proveedores WHERE id = ?",
+				"SELECT nombre FROM proveedores WHERE id = ?",
 				[proveedor_id],
 			);
 			if (nuevoProveedor.length > 0) {
@@ -772,7 +772,7 @@ exports.updateActivo = async (req, res) => {
 
 		if (ubicacion_id && ubicacion_id !== activoExistente[0].ubicacion_id) {
 			const [nuevaUbicacion] = await db.query(
-				"SELECT nombre FROM Ubicaciones WHERE id = ?",
+				"SELECT nombre FROM ubicaciones WHERE id = ?",
 				[ubicacion_id],
 			);
 			if (nuevaUbicacion.length > 0) {
@@ -848,7 +848,7 @@ exports.updateActivo = async (req, res) => {
 
 		// Ejecutar actualización
 		values.push(id);
-		const query = `UPDATE Activos SET ${updates.join(", ")} WHERE id = ?`;
+		const query = `UPDATE activos SET ${updates.join(", ")} WHERE id = ?`;
 		await db.query(query, values);
 
 		// 5. MANEJO DE GARANTÍAS
@@ -867,7 +867,7 @@ exports.updateActivo = async (req, res) => {
 		) {
 			// Buscar garantía existente
 			const [existingGarantia] = await db.query(
-				"SELECT * FROM Garantias WHERE activo_id = ?",
+				"SELECT * FROM garantias WHERE activo_id = ?",
 				[id],
 			);
 
@@ -875,7 +875,7 @@ exports.updateActivo = async (req, res) => {
 			const [proveedorGarantiaAnterior] =
 				existingGarantia.length > 0
 					? await db.query(
-							"SELECT nombre FROM ProveedoresGarantia WHERE id = ?",
+							"SELECT nombre FROM proveedoresgarantia WHERE id = ?",
 							[existingGarantia[0].proveedor_garantia_id],
 						)
 					: [null];
@@ -912,7 +912,7 @@ exports.updateActivo = async (req, res) => {
 				// Obtener nombre del proveedor
 				const [nuevoProveedorGarantia] = proveedor_garantia_id
 					? await db.query(
-							"SELECT nombre FROM ProveedoresGarantia WHERE id = ?",
+							"SELECT nombre FROM proveedoresgarantia WHERE id = ?",
 							[proveedor_garantia_id],
 						)
 					: [null];
@@ -936,7 +936,7 @@ exports.updateActivo = async (req, res) => {
 
 				if (garantiaUpdates.length > 0) {
 					await db.query(
-						`UPDATE Garantias SET ${garantiaUpdates.join(", ")} WHERE id = ?`,
+						`UPDATE garantias SET ${garantiaUpdates.join(", ")} WHERE id = ?`,
 						[...garantiaValues, existingGarantia[0].id],
 					);
 				}
@@ -953,7 +953,7 @@ exports.updateActivo = async (req, res) => {
 
 				// Crear nueva garantía
 				await db.query(
-					`INSERT INTO Garantias (
+					`INSERT INTO garantias (
     activo_id, nombre_garantia, proveedor_garantia_id, 
     fecha_inicio, fecha_fin, estado, descripcion, costo, condiciones
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -987,7 +987,7 @@ exports.updateActivo = async (req, res) => {
 			`${comentariosDinamicos} ${cambiosGarantia}`.trim();
 
 		await db.query(
-			"INSERT INTO Historial (activo_id, accion, usuario_responsable, detalles) VALUES (?, ?, ?, ?)",
+			"INSERT INTO historial (activo_id, accion, usuario_responsable, detalles) VALUES (?, ?, ?, ?)",
 			[
 				id,
 				"Activo actualizado",
@@ -998,11 +998,11 @@ exports.updateActivo = async (req, res) => {
 
 		// 7. Obtener y devolver datos actualizados
 		const [updatedActivo] = await db.query(
-			"SELECT * FROM Activos WHERE id = ?",
+			"SELECT * FROM activos WHERE id = ?",
 			[id],
 		);
 		const [updatedGarantia] = await db.query(
-			"SELECT * FROM Garantias WHERE activo_id = ?",
+			"SELECT * FROM garantias WHERE activo_id = ?",
 			[id],
 		);
 
@@ -1039,7 +1039,7 @@ exports.deleteActivo = async (req, res) => {
 	try {
 		// Verificar dependencias en otras tablas
 		const [asignaciones] = await db.query(
-			"SELECT id FROM Asignaciones WHERE activo_id = ?",
+			"SELECT id FROM asignaciones WHERE activo_id = ?",
 			[id],
 		);
 		if (asignaciones.length > 0) {
@@ -1050,7 +1050,7 @@ exports.deleteActivo = async (req, res) => {
 		}
 
 		const [garantias] = await db.query(
-			"SELECT id FROM Garantias WHERE activo_id = ?",
+			"SELECT id FROM garantias WHERE activo_id = ?",
 			[id],
 		);
 		if (garantias.length > 0) {
@@ -1062,7 +1062,7 @@ exports.deleteActivo = async (req, res) => {
 
 		// Verificar si el activo existe
 		const [activoExistente] = await db.query(
-			"SELECT * FROM Activos WHERE id = ?",
+			"SELECT * FROM activos WHERE id = ?",
 			[id],
 		);
 		if (activoExistente.length === 0) {
@@ -1070,7 +1070,7 @@ exports.deleteActivo = async (req, res) => {
 		}
 
 		// Eliminar el activo
-		await db.query("DELETE FROM Activos WHERE id = ?", [id]);
+		await db.query("DELETE FROM activos WHERE id = ?", [id]);
 
 		// Respondemos con un mensaje de éxito
 		res.status(200).json({ message: "Activo eliminado exitosamente" });
@@ -1090,7 +1090,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		];
 
 		// Consulta para obtener los tipos de activos
-		const [tipos] = await db.query("SELECT id, nombre FROM Tipos");
+		const [tipos] = await db.query("SELECT id, nombre FROM tipos");
 		if (!tipos || tipos.length === 0) {
 			return res.status(404).json({
 				error: "No se encontraron tipos de activos",
@@ -1099,7 +1099,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		}
 
 		// Consulta para obtener los proveedores
-		const [proveedores] = await db.query("SELECT id, nombre FROM Proveedores");
+		const [proveedores] = await db.query("SELECT id, nombre FROM proveedores");
 		if (!proveedores || proveedores.length === 0) {
 			return res.status(404).json({
 				error: "No se encontraron proveedores",
@@ -1108,7 +1108,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		}
 
 		// Consulta para obtener las ubicaciones
-		const [ubicaciones] = await db.query("SELECT id, nombre FROM Ubicaciones");
+		const [ubicaciones] = await db.query("SELECT id, nombre FROM ubicaciones");
 		if (!ubicaciones || ubicaciones.length === 0) {
 			return res.status(404).json({
 				error: "No se encontraron ubicaciones",
@@ -1118,7 +1118,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 
 		// Consulta para obtener los proveedores de garantía
 		const [proveedoresGarantia] = await db.query(
-			"SELECT id, nombre FROM ProveedoresGarantia",
+			"SELECT id, nombre FROM proveedoresgarantia",
 		);
 		if (!proveedoresGarantia || proveedoresGarantia.length === 0) {
 			return res.status(404).json({
@@ -1157,7 +1157,7 @@ exports.validarEtiquetaSerial = async (req, res) => {
 	try {
 		// Consulta la base de datos para verificar si la etiqueta serial existe
 		const [rows] = await db.query(
-			"SELECT id FROM Activos WHERE etiqueta_serial = ?",
+			"SELECT id FROM activos WHERE etiqueta_serial = ?",
 			[etiqueta_serial],
 		);
 
@@ -1182,7 +1182,7 @@ exports.darDeBajaActivo = async (req, res) => {
 	try {
 		// 2. Verificar si el activo existe
 		const [activo] = await db.query(
-			"SELECT id, estado, nombre FROM Activos WHERE id = ?",
+			"SELECT id, estado, nombre FROM activos WHERE id = ?",
 			[id],
 		);
 		if (activo.length === 0) {
@@ -1204,7 +1204,7 @@ exports.darDeBajaActivo = async (req, res) => {
 
 		// 4. Verificar si tiene asignaciones activas
 		const [asignacion] = await db.query(
-			"SELECT id FROM Asignaciones WHERE activo_id = ?",
+			"SELECT id FROM asignaciones WHERE activo_id = ?",
 			[id],
 		);
 
@@ -1217,14 +1217,14 @@ exports.darDeBajaActivo = async (req, res) => {
 
 		// 5. Actualizar estado y fecha_salida
 		await db.query(
-			'UPDATE Activos SET estado = "Dado de baja", fecha_salida = CURRENT_DATE WHERE id = ?',
+			'UPDATE activos SET estado = "Dado de baja", fecha_salida = CURRENT_DATE WHERE id = ?',
 			[id],
 		);
 
 		// 6. Registrar en el historial con más detalles
 		const detallesHistorial = `Baja permanente del activo "${activoData.nombre}"`;
 		await db.query(
-			"INSERT INTO Historial (activo_id, accion, usuario_responsable, detalles) VALUES (?, ?, ?, ?)",
+			"INSERT INTO historial (activo_id, accion, usuario_responsable, detalles) VALUES (?, ?, ?, ?)",
 			[id, "Baja del activo", req.user.id, detallesHistorial],
 		);
 

@@ -57,11 +57,11 @@ exports.getAsignaciones = async (req, res) => {
         a.comentarios,
         ac.foto_url AS foto_url
 
-      FROM Asignaciones a
-      JOIN Activos ac ON a.activo_id = ac.id
-      JOIN Tipos t ON ac.tipo_id = t.id -- Unir con la tabla Tipos para obtener el tipo
+      FROM asignaciones a
+      JOIN activos ac ON a.activo_id = ac.id
+      JOIN tipos t ON ac.tipo_id = t.id -- Unir con la tabla Tipos para obtener el tipo
       JOIN usuarios u ON a.usuario_id = u.id
-      JOIN Ubicaciones ub ON a.ubicacion_id = ub.id
+      JOIN ubicaciones ub ON a.ubicacion_id = ub.id
       ${whereClause}
       ORDER BY a.id ${direccionOrden} -- Ordenamiento
       LIMIT ? OFFSET ?
@@ -73,11 +73,11 @@ exports.getAsignaciones = async (req, res) => {
 		// Consulta para obtener el total de asignaciones (considerando filtros)
 		const totalQuery = `
       SELECT COUNT(*) AS total
-      FROM Asignaciones a
-      JOIN Activos ac ON a.activo_id = ac.id
-      JOIN Tipos t ON ac.tipo_id = t.id
+      FROM asignaciones a
+      JOIN activos ac ON a.activo_id = ac.id
+      JOIN tipos t ON ac.tipo_id = t.id
       JOIN usuarios u ON a.usuario_id = u.id
-      JOIN Ubicaciones ub ON a.ubicacion_id = ub.id
+      JOIN ubicaciones ub ON a.ubicacion_id = ub.id
       ${whereClause}
     `;
 		const [totalResult] = await db.query(totalQuery, queryParams.slice(0, -2));
@@ -128,9 +128,9 @@ exports.createAsignacion = async (req, res) => {
 		const [validaciones] = await db.query(
 			`
             SELECT 
-                (SELECT COUNT(*) FROM Activos WHERE id = ?) AS activo_existe,
+                (SELECT COUNT(*) FROM activos WHERE id = ?) AS activo_existe,
                 (SELECT COUNT(*) FROM usuarios WHERE id = ?) AS usuario_existe,
-                (SELECT COUNT(*) FROM Ubicaciones WHERE id = ?) AS ubicacion_existe
+                (SELECT COUNT(*) FROM ubicaciones WHERE id = ?) AS ubicacion_existe
         `,
 			[activo_id, usuario_id, ubicacion_id],
 		);
@@ -146,7 +146,7 @@ exports.createAsignacion = async (req, res) => {
 		}
 
 		// Obtener detalles del activo, usuario y ubicación
-		const [activo] = await db.query("SELECT nombre FROM Activos WHERE id = ?", [
+		const [activo] = await db.query("SELECT nombre FROM activos WHERE id = ?", [
 			activo_id,
 		]);
 		const [usuario] = await db.query(
@@ -154,7 +154,7 @@ exports.createAsignacion = async (req, res) => {
 			[usuario_id],
 		);
 		const [ubicacion] = await db.query(
-			"SELECT nombre FROM Ubicaciones WHERE id = ?",
+			"SELECT nombre FROM ubicaciones WHERE id = ?",
 			[ubicacion_id],
 		);
 
@@ -162,11 +162,11 @@ exports.createAsignacion = async (req, res) => {
 		const comentariosDinamicos = `Activo "${activo[0].nombre}" asignado al usuario "${usuario[0].nombre}" en la ubicación "${ubicacion[0].nombre}".`;
 
 		// Insertar la nueva asignación
-		const query = `
-            INSERT INTO Asignaciones (activo_id, usuario_id, ubicacion_id, fecha_asignacion, fecha_devolucion, comentarios)
+		const insertQuery = `
+            INSERT INTO asignaciones (activo_id, usuario_id, ubicacion_id, fecha_asignacion, fecha_devolucion, comentarios)
             VALUES (?, ?, ?, ?, ?, ?)
         `;
-		const [result] = await db.query(query, [
+		const [result] = await db.query(insertQuery, [
 			activo_id,
 			usuario_id,
 			ubicacion_id,
@@ -176,7 +176,7 @@ exports.createAsignacion = async (req, res) => {
 		]);
 
 		// Actualizar el estado del activo a "Asignado"
-		await db.query("UPDATE Activos SET estado = ? WHERE id = ?", [
+		await db.query("UPDATE activos SET estado = ? WHERE id = ?", [
 			"Asignado",
 			activo_id,
 		]);
@@ -236,15 +236,15 @@ exports.getAsignacionPorId = async (req, res) => {
 		const [asignacion] = await db.query(
 			`
         SELECT 
-          Asignaciones.*,
-          Activos.nombre AS activo_nombre,
+          asignaciones.*,
+          activos.nombre AS activo_nombre,
           usuarios.nombre AS usuario_nombre,
-          Ubicaciones.nombre AS ubicacion_nombre
-        FROM Asignaciones
-        LEFT JOIN Activos ON Asignaciones.activo_id = Activos.id
-        LEFT JOIN usuarios ON Asignaciones.usuario_id = usuarios.id
-        LEFT JOIN Ubicaciones ON Asignaciones.ubicacion_id = Ubicaciones.id
-        WHERE Asignaciones.id = ?
+          ubicaciones.nombre AS ubicacion_nombre
+        FROM asignaciones
+        LEFT JOIN activos ON asignaciones.activo_id = activos.id
+        LEFT JOIN usuarios ON asignaciones.usuario_id = usuarios.id
+        LEFT JOIN ubicaciones ON asignaciones.ubicacion_id = ubicaciones.id
+        WHERE asignaciones.id = ?
       `,
 			[id],
 		);
@@ -296,7 +296,7 @@ exports.updateAsignacion = async (req, res) => {
 
 		// Obtener la asignación existente
 		const [asignacionExistente] = await db.query(
-			"SELECT * FROM Asignaciones WHERE id = ?",
+			"SELECT * FROM asignaciones WHERE id = ?",
 			[id],
 		);
 		if (asignacionExistente.length === 0) {
@@ -305,7 +305,7 @@ exports.updateAsignacion = async (req, res) => {
 
 		// Obtener detalles actuales del activo, usuario y ubicación
 		const [activoActual] = await db.query(
-			"SELECT nombre FROM Activos WHERE id = ?",
+			"SELECT nombre FROM activos WHERE id = ?",
 			[asignacionExistente[0].activo_id],
 		);
 		const [usuarioAnterior] = await db.query(
@@ -313,7 +313,7 @@ exports.updateAsignacion = async (req, res) => {
 			[asignacionExistente[0].usuario_id],
 		);
 		const [ubicacionAnterior] = await db.query(
-			"SELECT nombre FROM Ubicaciones WHERE id = ?",
+			"SELECT nombre FROM ubicaciones WHERE id = ?",
 			[asignacionExistente[0].ubicacion_id],
 		);
 
@@ -344,7 +344,7 @@ exports.updateAsignacion = async (req, res) => {
 		let nuevaUbicacionNombre = ubicacionAnterior[0].nombre; // Mantener la ubicación anterior por defecto
 		if (ubicacion_id && ubicacion_id !== asignacionExistente[0].ubicacion_id) {
 			const [nuevaUbicacion] = await db.query(
-				"SELECT nombre FROM Ubicaciones WHERE id = ?",
+				"SELECT nombre FROM ubicaciones WHERE id = ?",
 				[ubicacion_id],
 			);
 			if (nuevaUbicacion.length === 0) {
@@ -393,7 +393,7 @@ exports.updateAsignacion = async (req, res) => {
 		fieldsToUpdate.comentarios = nuevoComentario; // Actualizar el campo comentarios
 
 		const query = `
-            UPDATE Asignaciones 
+            UPDATE asignaciones 
             SET ${Object.keys(fieldsToUpdate)
 							.map((key, index) => `${key} = ?`)
 							.join(", ")}
@@ -455,8 +455,8 @@ exports.deleteAsignacion = async (req, res) => {
 		// Paso 1: Obtener el ID del activo asociado a la asignación
 		const getActivoQuery = `
       SELECT a.id AS asignacion_id, a.activo_id, ac.nombre AS activo_nombre
-      FROM Asignaciones a
-      JOIN Activos ac ON a.activo_id = ac.id
+      FROM asignaciones a
+      JOIN activos ac ON a.activo_id = ac.id
       WHERE a.id = ?`;
 		const [asignacion] = await db.query(getActivoQuery, [id]);
 
@@ -468,11 +468,11 @@ exports.deleteAsignacion = async (req, res) => {
 
 		// Paso 2: Actualizar el estado del activo a "Disponible"
 		const updateActivoQuery =
-			'UPDATE Activos SET estado = "Disponible" WHERE id = ?';
+			'UPDATE activos SET estado = "Disponible" WHERE id = ?';
 		await db.query(updateActivoQuery, [activo_id]);
 
 		// Paso 3: Eliminar la asignación
-		const deleteAsignacionQuery = "DELETE FROM Asignaciones WHERE id = ?";
+		const deleteAsignacionQuery = "DELETE FROM asignaciones WHERE id = ?";
 		await db.query(deleteAsignacionQuery, [id]);
 
 		// Paso 4: Registrar en el historial
@@ -523,26 +523,26 @@ exports.getActivosDisponibles = async (req, res) => {
 		const { search = "", tipo, ubicacion, proveedores } = req.query;
 
 		// Construir WHERE dinámico
-		const whereClauses = ["Activos.estado = 'Disponible'"]; // Filtro base: solo activos "Disponibles"
+		const whereClauses = ["activos.estado = 'Disponible'"]; // Filtro base: solo activos "Disponibles"
 		const queryParams = [];
 
 		// Búsqueda general (nombre)
 		if (search) {
-			whereClauses.push(`Activos.nombre LIKE ?`);
+			whereClauses.push(`activos.nombre LIKE ?`);
 			queryParams.push(`%${search}%`);
 		}
 
 		// Filtros específicos
 		if (tipo) {
-			whereClauses.push(`Activos.tipo_id = ?`);
+			whereClauses.push(`activos.tipo_id = ?`);
 			queryParams.push(tipo);
 		}
 		if (ubicacion) {
-			whereClauses.push(`Activos.ubicacion_id = ?`);
+			whereClauses.push(`activos.ubicacion_id = ?`);
 			queryParams.push(ubicacion);
 		}
 		if (proveedores) {
-			whereClauses.push(`Activos.proveedor_id = ?`);
+			whereClauses.push(`activos.proveedor_id = ?`);
 			queryParams.push(proveedores);
 		}
 
@@ -554,19 +554,19 @@ exports.getActivosDisponibles = async (req, res) => {
 		const [rows] = await db.query(
 			`
       SELECT 
-          Activos.id,
-          Activos.nombre AS activo,
-          Tipos.nombre AS tipo_activo,
-          Activos.estado AS estado_activo,
-          Proveedores.nombre AS proveedor, -- Nombre del proveedor
-          Ubicaciones.nombre AS ubicacion,
-          Activos.foto_url AS foto_url
-      FROM Activos
-      LEFT JOIN Tipos ON Activos.tipo_id = Tipos.id  
-      LEFT JOIN Proveedores ON Activos.proveedor_id = Proveedores.id -- Unión con la tabla Proveedores
-      LEFT JOIN Ubicaciones ON Activos.ubicacion_id = Ubicaciones.id  
+          activos.id,
+          activos.nombre AS activo,
+          tipos.nombre AS tipo_activo,
+          activos.estado AS estado_activo,
+          proveedores.nombre AS proveedor, -- Nombre del proveedor
+          ubicaciones.nombre AS ubicacion,
+          activos.foto_url AS foto_url
+      FROM activos
+      LEFT JOIN tipos ON activos.tipo_id = tipos.id  
+      LEFT JOIN proveedores ON activos.proveedor_id = proveedores.id -- Unión con la tabla Proveedores
+      LEFT JOIN ubicaciones ON activos.ubicacion_id = ubicaciones.id  
       WHERE ${whereClause} -- Aplicar filtros
-      ORDER BY Activos.id ${direccionOrden} -- Ordenamiento
+      ORDER BY activos.id ${direccionOrden} -- Ordenamiento
       LIMIT ? OFFSET ?
       `,
 			[...queryParams, limit, offset], // Parámetros seguros
@@ -578,10 +578,10 @@ exports.getActivosDisponibles = async (req, res) => {
 		const [totalRows] = await db.query(
 			`
       SELECT COUNT(*) AS total
-      FROM Activos
-      LEFT JOIN Tipos ON Activos.tipo_id = Tipos.id  
-      LEFT JOIN Proveedores ON Activos.proveedor_id = Proveedores.id -- Unión con la tabla Proveedores
-      LEFT JOIN Ubicaciones ON Activos.ubicacion_id = Ubicaciones.id  
+      FROM activos
+      LEFT JOIN tipos ON activos.tipo_id = tipos.id  
+      LEFT JOIN proveedores ON activos.proveedor_id = proveedores.id -- Unión con la tabla Proveedores
+      LEFT JOIN ubicaciones ON activos.ubicacion_id = ubicaciones.id  
       WHERE ${whereClause} -- Aplicar filtros
       `,
 			queryParams,
@@ -631,7 +631,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		// Consulta para obtener los tipos de activos
 		let tiposActivos;
 		try {
-			[tiposActivos] = await db.query("SELECT id, nombre FROM Tipos");
+			[tiposActivos] = await db.query("SELECT id, nombre FROM tipos");
 		} catch (queryError) {
 			console.error("Error al consultar tipos de activos:", queryError);
 			return res
@@ -642,7 +642,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		// Consulta para obtener los proveedores
 		let proveedores;
 		try {
-			[proveedores] = await db.query("SELECT id, nombre FROM Proveedores");
+			[proveedores] = await db.query("SELECT id, nombre FROM proveedores");
 		} catch (queryError) {
 			console.error("Error al consultar proveedores:", queryError);
 			return res
@@ -653,7 +653,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		// Consulta para obtener las ubicaciones
 		let ubicaciones;
 		try {
-			[ubicaciones] = await db.query("SELECT id, nombre FROM Ubicaciones");
+			[ubicaciones] = await db.query("SELECT id, nombre FROM ubicaciones");
 		} catch (queryError) {
 			console.error("Error al consultar ubicaciones:", queryError);
 			return res
@@ -668,7 +668,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		if (id) {
 			try {
 				const [activo] = await db.query(
-					"SELECT nombre FROM Activos WHERE id = ?",
+					"SELECT nombre FROM activos WHERE id = ?",
 					[id],
 				);
 

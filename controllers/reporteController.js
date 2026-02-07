@@ -34,10 +34,10 @@ exports.getTiposReporte = async (req, res) => {
 exports.getDatosAuxiliares = async (req, res) => {
 	try {
 		// Consultas SQL para obtener los datos
-		const [tiposActivo] = await db.query("SELECT id, nombre FROM Tipos");
+		const [tiposActivo] = await db.query("SELECT id, nombre FROM tipos");
 		const [usuarios] = await db.query("SELECT id, nombre FROM usuarios");
-		const [ubicaciones] = await db.query("SELECT id, nombre FROM Ubicaciones");
-		const [proveedores] = await db.query("SELECT id, nombre FROM Proveedores");
+		const [ubicaciones] = await db.query("SELECT id, nombre FROM ubicaciones");
+		const [proveedores] = await db.query("SELECT id, nombre FROM proveedores");
 
 		// Construir la respuesta
 		const response = {
@@ -74,7 +74,7 @@ exports.generarReporte = async (req, res) => {
 		}
 		// Consultar el tipo de reporte en la tabla TiposReporte
 		const [tipoReporteRows] = await db.query(
-			"SELECT id, nombre, descripcion FROM TiposReporte WHERE id = ? AND activo = TRUE",
+			"SELECT id, nombre, descripcion FROM tiposreporte WHERE id = ? AND activo = TRUE",
 			[tipo_id],
 		);
 		if (tipoReporteRows.length === 0) {
@@ -95,8 +95,8 @@ exports.generarReporte = async (req, res) => {
 			case 1: // Reporte: Activos por estado
 				queryBase = `
         SELECT a.estado, COUNT(*) AS cantidad
-        FROM Activos a
-        LEFT JOIN Asignaciones asig ON a.id = asig.activo_id
+        FROM activos a
+        LEFT JOIN asignaciones asig ON a.id = asig.activo_id
         GROUP BY a.estado;
     `;
 				break;
@@ -104,9 +104,9 @@ exports.generarReporte = async (req, res) => {
 			case 2: // Reporte: Activos asignados por usuario
 				queryBase = `
       SELECT u.nombre AS usuario, COUNT(a.id) AS cantidad
-      FROM Asignaciones asig
+      FROM asignaciones asig
       JOIN usuarios u ON asig.usuario_id = u.id
-      JOIN Activos a ON asig.activo_id = a.id
+      JOIN activos a ON asig.activo_id = a.id
       GROUP BY u.nombre;
     `;
 				break;
@@ -114,8 +114,8 @@ exports.generarReporte = async (req, res) => {
 			case 3: // Reporte: Garantías por estado
 				queryBase = `
           SELECT g.estado, COUNT(*) AS cantidad
-          FROM Garantias g
-          JOIN Activos a ON g.activo_id = a.id
+          FROM garantias g
+          JOIN activos a ON g.activo_id = a.id
           GROUP BY g.estado;
         `;
 				break;
@@ -123,16 +123,16 @@ exports.generarReporte = async (req, res) => {
 			case 4: // Reporte: Costo total de activos
 				queryBase = `
           SELECT SUM(a.valor_compra) AS costo_total
-          FROM Activos a
-          LEFT JOIN Asignaciones asig ON a.id = asig.activo_id
+          FROM activos a
+          LEFT JOIN asignaciones asig ON a.id = asig.activo_id
         `;
 				break;
 
 			case 5: // Reporte: Historial de asignaciones
 				queryBase = `
       SELECT a.nombre AS activo, u.nombre AS usuario, asig.fecha_asignacion, asig.fecha_devolucion
-      FROM Asignaciones asig
-      JOIN Activos a ON asig.activo_id = a.id
+      FROM asignaciones asig
+      JOIN activos a ON asig.activo_id = a.id
       JOIN usuarios u ON asig.usuario_id = u.id
     `;
 				break;
@@ -140,8 +140,8 @@ exports.generarReporte = async (req, res) => {
 			case 6: // Reporte: Activos por tipo
 				queryBase = `
       SELECT t.nombre AS tipo, COUNT(a.id) AS cantidad
-      FROM Activos a
-      JOIN Tipos t ON a.tipo_id = t.id
+      FROM activos a
+      JOIN tipos t ON a.tipo_id = t.id
       GROUP BY t.nombre;
     `;
 				break;
@@ -149,8 +149,8 @@ exports.generarReporte = async (req, res) => {
 			case 7: // Reporte: Ubicación de activos
 				queryBase = `
       SELECT u.nombre AS ubicacion, COUNT(a.id) AS cantidad
-      FROM Activos a
-      JOIN Ubicaciones u ON a.ubicacion_id = u.id
+      FROM activos a
+      JOIN ubicaciones u ON a.ubicacion_id = u.id
       GROUP BY u.nombre;
     `;
 				break;
@@ -204,19 +204,19 @@ exports.generarReporte = async (req, res) => {
 				return "asig.usuario_id = ?"; // Usamos alias 'asig'
 			} else if (tipo_id === 3) {
 				// Reporte 3: Filtrar por usuario vía activos asignados
-				return "a.id IN (SELECT activo_id FROM Asignaciones WHERE usuario_id = ?)";
+				return "a.id IN (SELECT activo_id FROM asignaciones WHERE usuario_id = ?)";
 			} else if (tipo_id === 4) {
 				// Reporte 4: Filtrar por el campo "id" vía activos asignados
-				return "a.id IN (SELECT activo_id FROM Asignaciones WHERE usuario_id = ?)";
+				return "a.id IN (SELECT activo_id FROM asignaciones WHERE usuario_id = ?)";
 			} else if (tipo_id === 5) {
 				// Reporte 5: Historial de asignaciones
 				return "asig.usuario_id = ?"; // Usamos alias 'asig'
 			} else if (tipo_id === 6) {
 				// Reporte 6: Filtrar por el campo "id" vía activos asignados
-				return "a.id IN (SELECT activo_id FROM Asignaciones WHERE usuario_id = ?)";
+				return "a.id IN (SELECT activo_id FROM asignaciones WHERE usuario_id = ?)";
 			} else if (tipo_id === 7) {
 				// Reporte 7: Filtrar por usuario vía activos asignados
-				return "a.id IN (SELECT activo_id FROM Asignaciones WHERE usuario_id = ?)";
+				return "a.id IN (SELECT activo_id FROM asignaciones WHERE usuario_id = ?)";
 			} else {
 				// Para otros tipos de reporte, usar una subconsulta
 				return "a.id = ?"; // Alias 'a'
@@ -408,7 +408,7 @@ exports.generarReporte = async (req, res) => {
 	async function getNombreUbicacion(ubicacion_id) {
 		if (!ubicacion_id) return "Todos";
 		const [rows] = await db.query(
-			"SELECT nombre FROM Ubicaciones WHERE id = ?",
+			"SELECT nombre FROM ubicaciones WHERE id = ?",
 			[ubicacion_id],
 		);
 		return rows.length > 0 ? rows[0].nombre : "Desconocido";
@@ -417,7 +417,7 @@ exports.generarReporte = async (req, res) => {
 	async function getNombreProveedor(proveedor_id) {
 		if (!proveedor_id) return "Todos";
 		const [rows] = await db.query(
-			"SELECT nombre FROM Proveedores WHERE id = ?",
+			"SELECT nombre FROM providers WHERE id = ?",
 			[proveedor_id],
 		);
 		return rows.length > 0 ? rows[0].nombre : "Desconocido";

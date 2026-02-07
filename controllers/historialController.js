@@ -12,7 +12,7 @@ exports.getHistorialActivo = async (req, res) => {
 		}
 
 		// Verificar si el activo existe
-		const [activo] = await db.query("SELECT id FROM Activos WHERE id = ?", [
+		const [activo] = await db.query("SELECT id FROM activos WHERE id = ?", [
 			id,
 		]);
 		if (activo.length === 0) {
@@ -60,7 +60,7 @@ exports.getHistorialActivo = async (req, res) => {
         h.fecha, 
         u.nombre AS usuario_responsable, 
         h.detalles 
-       FROM Historial h 
+       FROM historial h 
        JOIN usuarios u ON h.usuario_responsable = u.id 
        WHERE h.activo_id = ? ${whereClause}
        ORDER BY h.fecha ${direccionOrden}  
@@ -71,7 +71,7 @@ exports.getHistorialActivo = async (req, res) => {
 		// Consulta para el total de registros
 		const [totalRows] = await db.query(
 			`SELECT COUNT(*) AS total 
-       FROM Historial h
+       FROM historial h
        JOIN usuarios u ON h.usuario_responsable = u.id
        WHERE h.activo_id = ? ${whereClause}`,
 			queryParams,
@@ -101,7 +101,7 @@ exports.getDatosAuxiliares = async (req, res) => {
 	try {
 		// Consulta para obtener acciones
 		const [acciones] = await db.query(
-			"SELECT DISTINCT accion as nombre FROM Historial ORDER BY accion ASC",
+			"SELECT id, nombre, fecha_registro, estado FROM activos",
 		);
 		if (!acciones || acciones.length === 0) {
 			return res
@@ -113,7 +113,7 @@ exports.getDatosAuxiliares = async (req, res) => {
 		const [usuarios] = await db.query(`
       SELECT DISTINCT u.id, u.nombre 
       FROM usuarios u
-      JOIN Historial h ON u.id = h.usuario_responsable
+      JOIN historial h ON u.id = h.usuario_responsable
       ORDER BY u.nombre ASC
     `);
 		if (!usuarios || usuarios.length === 0) {
