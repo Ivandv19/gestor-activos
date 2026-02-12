@@ -416,10 +416,9 @@ exports.generarReporte = async (req, res) => {
 
 	async function getNombreProveedor(proveedor_id) {
 		if (!proveedor_id) return "Todos";
-		const [rows] = await db.query(
-			"SELECT nombre FROM providers WHERE id = ?",
-			[proveedor_id],
-		);
+		const [rows] = await db.query("SELECT nombre FROM providers WHERE id = ?", [
+			proveedor_id,
+		]);
 		return rows.length > 0 ? rows[0].nombre : "Desconocido";
 	}
 };

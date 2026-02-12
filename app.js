@@ -63,8 +63,6 @@ app.use("/garantias", garantiasRoutes); // Rutas para manejo de garantías
 app.use("/reportes", reporteRoutes); // Rutas para generación de reportes
 app.use("/configuracion", configuracionRoutes); // Rutas para configuración del sistema
 
-
-
 // Inicialización del servidor
 const PORT = process.env.SERVER_PORT || 3000; // Usa el puerto de .env o 3000 por defecto
 app.listen(PORT, () => {
