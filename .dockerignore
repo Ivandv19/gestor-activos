@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+README.md
+mi-carpeta-imagenes/*
+!mi-carpeta-imagenes/.gitkeep
+biome.json
+task.md
+implementation_plan.md
+walkthrough.md
