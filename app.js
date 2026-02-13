@@ -46,7 +46,11 @@ app.use(morgan("dev")); // Logs en consola
 // Configuración CORS (solo permite front en localhost:4200)
 app.use(
 	cors({
-		origin: process.env.FRONTEND_URL || "*", // Usa la variable o permite todo (*) por seguridad temporal
+		origin: [
+			process.env.FRONTEND_URL,
+			"https://gestor.mgdc.site",
+			"http://localhost:4200",
+		].filter(Boolean),
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
 		allowedHeaders: ["Content-Type", "Authorization"],
 	}),
