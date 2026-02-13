@@ -23,6 +23,9 @@ const configuracionRoutes = require("./routes/configuracionRoutes");
 // Inicializar Express
 const app = express();
 
+// 1. CORS primero de todo para manejar preflights sin bloqueos
+app.use(cors());
+
 app.set("trust proxy", 1);
 
 app.use(
@@ -40,17 +43,7 @@ app.use(
 
 // Middlewares básicos
 app.use(express.json()); // Parseo de JSON
-
 app.use(morgan("dev")); // Logs en consola
-
-// Configuración CORS (solo permite front en localhost:4200)
-app.use(
-	cors({
-		origin: "*", // Permitir todos los orígenes para pruebas
-		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-		allowedHeaders: ["Content-Type", "Authorization"],
-	}),
-);
 
 // Configuración de rutas principales
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs)); // Documentación API (Swagger UI)
