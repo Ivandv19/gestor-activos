@@ -46,6 +46,14 @@ app.use(express.json()); // Parseo de JSON
 app.use(morgan("dev")); // Logs en consola
 
 // Configuración de rutas principales
+app.get("/api/health", (req, res) => {
+	res.status(200).json({
+		status: "ok",
+		uptime: process.uptime(),
+		timestamp: new Date().toISOString(),
+	});
+});
+
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs)); // Documentación API (Swagger UI)
 app.use("/gestion-activos", activosRoutes); // ruta para gestionar lso activos
 app.use("/auth", authRoutes); // Rutas relacionadas con autenticación
