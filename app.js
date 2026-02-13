@@ -26,6 +26,7 @@ const app = express();
 // 1. CORS primero de todo para manejar preflights sin bloqueos
 app.use(cors());
 
+// Confía en el proxy (Traefik) para que pase las IPs reales y protocolos
 app.set("trust proxy", 1);
 
 app.use(
@@ -46,16 +47,8 @@ app.use(express.json()); // Parseo de JSON
 app.use(morgan("dev")); // Logs en consola
 
 // Configuración de rutas principales
-app.get("/api/health", (req, res) => {
-	res.status(200).json({
-		status: "ok",
-		uptime: process.uptime(),
-		timestamp: new Date().toISOString(),
-	});
-});
-
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs)); // Documentación API (Swagger UI)
-app.use("/gestion-activos", activosRoutes); // ruta para gestionar lso activos
+app.use("/gestion-activos", activosRoutes); // ruta para gestionar los activos
 app.use("/auth", authRoutes); // Rutas relacionadas con autenticación
 app.use("/dashboard", dashboardRoutes); // Rutas para el panel de control
 app.use("/historial", historialRoutes); // Rutas para el historial de operaciones
@@ -64,11 +57,24 @@ app.use("/garantias", garantiasRoutes); // Rutas para manejo de garantías
 app.use("/reportes", reporteRoutes); // Rutas para generación de reportes
 app.use("/configuracion", configuracionRoutes); // Rutas para configuración del sistema
 
+// ✅ NUEVO: Endpoint de Salud (Health Check)
+// Sirve para que Traefik o tú verifiquen que la app está viva sin autenticación
+app.get("/health", (req, res) => {
+	res.status(200).json({
+		status: "ok",
+		uptime: process.uptime(),
+		message: "Gestor de Activos Backend is running correctly!",
+		timestamp: new Date().toISOString()
+	});
+});
+
 // Inicialización del servidor
 const PORT = process.env.SERVER_PORT || 3000; // Usa el puerto de .env o 3000 por defecto
-app.listen(PORT, () => {
-	console.log(`✅ Servidor ejecutándose en http://localhost:${PORT}`);
-	console.log(
-		`📚 Documentación API disponible en http://localhost:${PORT}/api-docs`,
-	);
+
+// 🚨 CORRECCIÓN CRUCIAL: Agregamos "0.0.0.0"
+// Esto permite que Docker/Traefik se conecten desde fuera del contenedor
+app.listen(PORT, "0.0.0.0", () => {
+	console.log(`✅ Servidor ejecutándose en http://0.0.0.0:${PORT}`);
+	console.log(`📚 Documentación API disponible en http://0.0.0.0:${PORT}/api-docs`);
+	console.log(`🏥 Health check disponible en http://0.0.0.0:${PORT}/health`);
 });
