@@ -29,10 +29,10 @@ RUN mkdir -p mi-carpeta-imagenes
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV SERVER_PORT=3000
+ENV SERVER_PORT=3030
 
 # Expose the application port
-EXPOSE 3000
+EXPOSE 3030
 
 # Start the application
 CMD ["node", "app.js"]
