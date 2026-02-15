@@ -1,16 +1,16 @@
-// Dependencias principales
+// Dependencias core
 const express = require("express");
-const morgan = require("morgan"); // Logs de peticiones
-const helmet = require("helmet"); // Seguridad HTTP
-const cors = require("cors"); // Permisos CORS
-require("dotenv").config(); // Variables de entorno
+const morgan = require("morgan");
+const helmet = require("helmet");
+const cors = require("cors");
 const path = require("path");
-const pool = require("./config/db"); // O como se llame tu carpeta/archivo de conexión
+require("dotenv").config();
+const pool = require("./config/db");
 
-// Swagger (Documentación API)
+// Documentación Swagger
 const { swaggerDocs, swaggerUi } = require("./swagger/swagger");
 
-// Rutas
+// Importación de rutas
 const activosRoutes = require("./routes/activosRoutes");
 const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
@@ -23,12 +23,11 @@ const configuracionRoutes = require("./routes/configuracionRoutes");
 // Inicializar Express
 const app = express();
 
-// 1. CORS primero de todo para manejar preflights sin bloqueos
+// Seguridad y configuración de Proxy
 app.use(cors());
-
-// Confía en el proxy (Traefik) para que pase las IPs reales y protocolos
 app.set("trust proxy", 1);
 
+// Configuración de Helmet y Seguridad
 app.use(
 	helmet({
 		contentSecurityPolicy: false,
@@ -36,30 +35,29 @@ app.use(
 	}),
 );
 
-// ruta para obtener imagenes estaticas
+// Recursos estáticos (imágenes)
 app.use(
-	"/assets/images",
+	"/api/assets/images",
 	express.static(path.resolve(__dirname, "./mi-carpeta-imagenes")),
-); // Servir imágenes estáticas desde la carpeta especificada
+);
 
-// Middlewares básicos
-app.use(express.json()); // Parseo de JSON
-app.use(morgan("dev")); // Logs en consola
+// Middleware para parseo y logs
+app.use(express.json());
+app.use(morgan("dev"));
 
-// Configuración de rutas principales
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs)); // Documentación API (Swagger UI)
-app.use("/gestion-activos", activosRoutes); // ruta para gestionar los activos
-app.use("/auth", authRoutes); // Rutas relacionadas con autenticación
-app.use("/dashboard", dashboardRoutes); // Rutas para el panel de control
-app.use("/historial", historialRoutes); // Rutas para el historial de operaciones
-app.use("/asignaciones", asignacionesRoutes); // Rutas para gestión de asignaciones
-app.use("/garantias", garantiasRoutes); // Rutas para manejo de garantías
-app.use("/reportes", reporteRoutes); // Rutas para generación de reportes
-app.use("/configuracion", configuracionRoutes); // Rutas para configuración del sistema
+// Registro de rutas principales
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use("/api/gestion-activos", activosRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/historial", historialRoutes);
+app.use("/api/asignaciones", asignacionesRoutes);
+app.use("/api/garantias", garantiasRoutes);
+app.use("/api/reportes", reporteRoutes);
+app.use("/api/configuracion", configuracionRoutes);
 
-// ✅ NUEVO: Endpoint de Salud (Health Check)
-// Sirve para que Traefik o tú verifiquen que la app está viva sin autenticación
-app.get("/health", (req, res) => {
+// Endpoint de salud del sistema
+app.get("/api/health", (req, res) => {
 	res.status(200).json({
 		status: "ok",
 		uptime: process.uptime(),
@@ -68,13 +66,11 @@ app.get("/health", (req, res) => {
 	});
 });
 
-// Inicialización del servidor
-const PORT = process.env.SERVER_PORT || 3000; // Usa el puerto de .env o 3000 por defecto
+// Puerto y encendido del servidor
+const PORT = process.env.SERVER_PORT || 3000;
 
-// 🚨 CORRECCIÓN CRUCIAL: Agregamos "0.0.0.0"
-// Esto permite que Docker/Traefik se conecten desde fuera del contenedor
 app.listen(PORT, "0.0.0.0", () => {
 	console.log(`✅ Servidor ejecutándose en http://0.0.0.0:${PORT}`);
-	console.log(`📚 Documentación API disponible en http://0.0.0.0:${PORT}/api-docs`);
-	console.log(`🏥 Health check disponible en http://0.0.0.0:${PORT}/health`);
+	console.log(`📚 Documentación API disponible en http://0.0.0.0:${PORT}/api/docs`);
+	console.log(`🏥 Health check disponible en http://0.0.0.0:${PORT}/api/health`);
 });
