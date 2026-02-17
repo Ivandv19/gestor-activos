@@ -35,4 +35,4 @@ ENV SERVER_PORT=3030
 EXPOSE 3030
 
 # Start the application
-CMD ["node", "app.js"]
+CMD ["node", "server.js"]
