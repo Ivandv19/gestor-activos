@@ -1,38 +1,38 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Etapa de construcción (Build stage)
+FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copiar archivos de dependencias (incluyendo bun.lock para versiones exactas)
+COPY package.json bun.lock ./
 
-# Install all dependencies (including devDependencies for Biome if needed, but here just for build)
-RUN npm install
+# Instalar todas las dependencias
+RUN bun install --frozen-lockfile
 
-# Copy source code
+# Copiar el código fuente
 COPY . .
 
-# Production stage
-FROM node:20-alpine
+# Etapa de producción
+FROM oven/bun:1-alpine
 
 WORKDIR /app
 
-# Copy only production dependencies
-COPY package*.json ./
-RUN npm install --omit=dev
+# Copiar instalar solo dependencias de producción
+COPY package.json bun.lock ./
+RUN bun install --production --frozen-lockfile
 
-# Copy source from builder
+# Copiar el código desde la etapa del constructor
 COPY --from=builder /app .
 
-# Create directory for images if it doesn't exist
+# Crear el directorio para imágenes en caso de que no exista
 RUN mkdir -p mi-carpeta-imagenes
 
-# Set environment variables
+# Configurar las variables de entorno
 ENV NODE_ENV=production
 ENV SERVER_PORT=3030
 
-# Expose the application port
+# Exponer el puerto de la aplicación
 EXPOSE 3030
 
-# Start the application
-CMD ["node", "server.js"]
+# Iniciar la aplicación
+CMD ["bun", "run", "server.js"]
