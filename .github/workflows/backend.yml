@@ -51,4 +51,6 @@ jobs:
             echo "ERROR: DOKPLOY_WEBHOOK_URL secret is not set in GitHub Secrets"
             exit 1
           fi
-          curl -X POST "$WEBHOOK"
+          curl -X POST "$WEBHOOK" \
+            -H "User-Agent: Mozilla/5.0 (compatible; GitHub-Actions)" \
+            -H "Accept: application/json"
