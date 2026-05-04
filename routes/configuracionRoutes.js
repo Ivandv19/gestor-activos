@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const configuracionController = require("../controllers/configuracionController");
 const authenticate = require("../middleware/authenticate");
-const imageUpload = require("../middleware/imageUpload"); //
+const imageUpload = require("../middleware/imageUpload");
+const checkRole = require("../middleware/checkRole");
 
 /**
  * @swagger
@@ -206,6 +207,7 @@ router.get(
 router.put(
 	"/aplicacion",
 	authenticate,
+	checkRole("Administrador"),
 	configuracionController.updateConfiguracionAplicacion,
 );
 
@@ -393,66 +395,8 @@ router.get("/perfil", authenticate, configuracionController.getPerfilUsuario);
 router.put(
 	"/perfil",
 	authenticate,
-	configuracionController.updatePerfilUsuario,
-);
-
-/**
- * @swagger
- * /configuracion/upload:
- *   post:
- *     tags:
- *       [Configuración]
- *     summary: "Sube una imagen al servidor"
- *     description: "Endpoint para cargar una imagen y obtener su URL relativa."
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: "object"
- *             properties:
- *               file:
- *                 type: "string"
- *                 format: "binary"
- *                 description: "Archivo de imagen (JPEG, PNG, etc.)"
- *     responses:
- *       200:
- *         description: "Imagen subida correctamente"
- *         content:
- *           application/json:
- *             schema:
- *               type: "object"
- *               properties:
- *                 url:
- *                   type: "string"
- *                   example: "/assets/images/1717832123.jpg"
- *       400:
- *         description: "Error: No se envió ninguna imagen"
- *         content:
- *           application/json:
- *             schema:
- *               type: "object"
- *               properties:
- *                 error:
- *                   type: "string"
- *                   example: "No se recibió ninguna imagen."
- *       500:
- *         description: "Error interno del servidor"
- *         content:
- *           application/json:
- *             schema:
- *               type: "object"
- *               properties:
- *                 error:
- *                   type: "string"
- *                   example: "Error al subir la imagen"
- */
-
-router.post(
-	"/upload",
-	authenticate,
 	imageUpload.imageUploadMiddleware,
-	configuracionController.uploadImage,
+	configuracionController.updatePerfilUsuario,
 );
 
 module.exports = router;

@@ -329,8 +329,18 @@ exports.updateGarantia = async (req, res) => {
 			"SELECT * FROM garantias WHERE id = ?",
 			[id],
 		);
+		const row = garantiaActualizada[0];
 		res.json({
-			...garantiaActualizada[0],
+			id: row.id,
+			activo_id: row.activo_id,
+			proveedor_garantia_id: row.proveedor_garantia_id,
+			nombre_garantia: row.nombre_garantia,
+			fecha_inicio: row.fecha_inicio,
+			fecha_fin: row.fecha_fin,
+			costo: row.costo,
+			condiciones: row.condiciones,
+			estado: row.estado,
+			descripcion: row.descripcion,
 			message: "Garantía actualizada correctamente",
 		});
 	} catch (error) {

@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const r2Service = require("../services/r2Service");
 
 exports.getActivos = async (req, res) => {
 	try {
@@ -203,16 +204,16 @@ exports.getActivoById = async (req, res) => {
 			},
 
 			// Fechas importantes
-			fechaAdquisicion: activo.fecha_adquisicion,
-			fechaRegistro: activo.fecha_registro,
-			fechaSalida: activo.fecha_salida,
+			fecha_adquisicion: activo.fecha_adquisicion,
+			fecha_registro: activo.fecha_registro,
+			fecha_salida: activo.fecha_salida,
 
 			// Datos financieros
-			valorCompra: activo.valor_compra,
-			costoMensual: activo.costo_mensual,
+			valor_compra: activo.valor_compra,
+			costo_mensual: activo.costo_mensual,
 
 			// Identificación y descripción
-			etiquetaSerial: activo.etiqueta_serial,
+			etiqueta_serial: activo.etiqueta_serial,
 			descripcion: activo.descripcion,
 
 			// Estado y ubicación
@@ -229,14 +230,14 @@ exports.getActivoById = async (req, res) => {
 			},
 
 			// Multimedia
-			fotoUrl: activo.foto_url,
+			foto_url: activo.foto_url,
 
 			// Datos técnicos
 			modelo: activo.modelo,
-			versionSoftware: activo.version_software,
-			tipoLicencia: activo.tipo_licencia,
-			fechaVencimientoLicencia: activo.fecha_vencimiento_licencia,
-			recursosAsignados: activo.recursos_asignados,
+			version_software: activo.version_software,
+			tipo_licencia: activo.tipo_licencia,
+			fecha_vencimiento_licencia: activo.fecha_vencimiento_licencia,
+			recursos_asignados: activo.recursos_asignados,
 
 			// Información del dueño/responsable
 			dueno: {
@@ -245,19 +246,19 @@ exports.getActivoById = async (req, res) => {
 			},
 
 			// Estado físico del activo
-			condicionFisica: activo.condicion_fisica || null,
+			condicion_fisica: activo.condicion_fisica || null,
 
 			// Información de garantías (si existe)
 			garantia: tieneGarantia
 				? garantiasRows.map((garantia) => ({
 						id: garantia.id,
-						nombre: garantia.nombre_garantia,
+						nombre_garantia: garantia.nombre_garantia,
 						proveedor: {
 							id: garantia.proveedor_garantia_id,
 							nombre: garantia.proveedor_garantia_nombre,
 						},
-						fechaInicio: garantia.fecha_inicio,
-						fechaFin: garantia.fecha_fin,
+						fecha_inicio: garantia.fecha_inicio,
+						fecha_fin: garantia.fecha_fin,
 						costo: garantia.costo,
 						condiciones: garantia.condiciones,
 						estado: garantia.estado,
@@ -281,7 +282,6 @@ exports.createActivo = async (req, res) => {
 		estado,
 		proveedor_id,
 		ubicacion_id,
-		foto_url,
 		modelo,
 		version_software,
 		tipo_licencia,
@@ -296,8 +296,8 @@ exports.createActivo = async (req, res) => {
 		// Campos específicos para garantía (todos opcionales)
 		nombre_garantia,
 		proveedor_garantia_id,
-		fecha_inicio_garantia,
-		fecha_fin_garantia,
+		fecha_inicio,
+		fecha_fin,
 		costo,
 		condiciones,
 		estado_garantia,
@@ -305,6 +305,25 @@ exports.createActivo = async (req, res) => {
 	} = req.body;
 
 	try {
+		console.log("[CREATE ACTIVO] Recibiendo:", {
+			nombre,
+			tipo_id,
+			archivo: req.file ? req.file.originalname : "sin archivo",
+		});
+
+		// Subir imagen a R2 si se recibio archivo
+		let foto_url = null;
+		if (req.file) {
+			const key = r2Service.generateKey(nombre, req.file.mimetype);
+			console.log("[CREATE ACTIVO] Subiendo a R2:", key);
+			const result = await r2Service.uploadToR2(
+				req.file.buffer,
+				key,
+				req.file.mimetype,
+			);
+			foto_url = result.url;
+			console.log("[CREATE ACTIVO] Imagen subida:", foto_url);
+		}
 		// Validación de campos obligatorios para el activo
 		if (
 			!nombre ||
@@ -377,8 +396,8 @@ exports.createActivo = async (req, res) => {
 		if (
 			nombre_garantia ||
 			proveedor_garantia_id ||
-			fecha_inicio_garantia ||
-			fecha_fin_garantia ||
+			fecha_inicio ||
+			fecha_fin ||
 			costo ||
 			condiciones ||
 			estado_garantia ||
@@ -388,8 +407,8 @@ exports.createActivo = async (req, res) => {
 			if (
 				!nombre_garantia ||
 				!proveedor_garantia_id ||
-				!fecha_inicio_garantia ||
-				!fecha_fin_garantia
+				!fecha_inicio ||
+				!fecha_fin
 			) {
 				return res
 					.status(400)
@@ -397,10 +416,7 @@ exports.createActivo = async (req, res) => {
 			}
 
 			// Validación de fechas para garantía
-			if (
-				isNaN(Date.parse(fecha_inicio_garantia)) ||
-				isNaN(Date.parse(fecha_fin_garantia))
-			) {
+			if (isNaN(Date.parse(fecha_inicio)) || isNaN(Date.parse(fecha_fin))) {
 				return res.status(400).json({ error: "Fechas de garantía no válidas" });
 			}
 
@@ -458,12 +474,7 @@ exports.createActivo = async (req, res) => {
 		const activoId = result.insertId; // ID del nuevo activo
 
 		// Insertar garantía si se proporcionaron los campos obligatorios
-		if (
-			nombre_garantia &&
-			proveedor_garantia_id &&
-			fecha_inicio_garantia &&
-			fecha_fin_garantia
-		) {
+		if (nombre_garantia && proveedor_garantia_id && fecha_inicio && fecha_fin) {
 			await db.query(
 				`INSERT INTO garantias 
         (activo_id, proveedor_garantia_id, nombre_garantia, fecha_inicio, fecha_fin, costo, condiciones, estado, descripcion)
@@ -472,8 +483,8 @@ exports.createActivo = async (req, res) => {
 					activoId,
 					proveedor_garantia_id,
 					nombre_garantia,
-					fecha_inicio_garantia,
-					fecha_fin_garantia,
+					fecha_inicio,
+					fecha_fin,
 					costo || null,
 					condiciones || null,
 					estado_garantia || "Vigente",
@@ -497,6 +508,9 @@ exports.createActivo = async (req, res) => {
 		);
 
 		// Respuesta exitosa
+		console.log(
+			`[CREATE ACTIVO] OK id=${activoId} nombre="${nombre}" foto_url=${foto_url || "ninguna"}`,
+		);
 		res
 			.status(201)
 			.json({ id: activoId, message: "Activo creado exitosamente" });
@@ -540,7 +554,7 @@ exports.updateActivo = async (req, res) => {
 		estado,
 		proveedor_id,
 		ubicacion_id,
-		foto_url,
+		foto_url: foto_url_body,
 		modelo,
 		version_software,
 		tipo_licencia,
@@ -559,6 +573,17 @@ exports.updateActivo = async (req, res) => {
 	} = req.body;
 
 	try {
+		// Subir imagen a R2 si se recibio archivo
+		let foto_url = foto_url_body;
+		if (req.file) {
+			const key = r2Service.generateKey(nombre || "activo", req.file.mimetype);
+			const result = await r2Service.uploadToR2(
+				req.file.buffer,
+				key,
+				req.file.mimetype,
+			);
+			foto_url = result.url;
+		}
 		// 1. VERIFICACIÓN INICIAL - Comprobar que el activo existe
 		const [activoExistente] = await db.query(
 			"SELECT * FROM activos WHERE id = ?",
@@ -1249,11 +1274,14 @@ exports.uploadImage = async (req, res) => {
 			return res.status(400).json({ error: "No se recibió ninguna imagen." });
 		}
 
-		// Genera la URL relativa de la imagen
-		const imageUrl = `/assets/images/${req.file.filename}`;
+		const key = r2Service.generateKey("activo", req.file.mimetype);
+		const result = await r2Service.uploadToR2(
+			req.file.buffer,
+			key,
+			req.file.mimetype,
+		);
 
-		// Responde al frontend con la URL generada
-		res.json({ url: imageUrl }); // Ejemplo: '/assets/images/1717832123.jpg'
+		res.json({ url: result.url });
 	} catch (error) {
 		console.error("[ERROR SUBIR IMAGEN]:", error.message);
 		res.status(500).json({ error: "Error al subir la imagen" });

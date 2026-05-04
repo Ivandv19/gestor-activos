@@ -2,6 +2,7 @@ const fs = require("fs").promises;
 const path = require("path");
 const db = require("../config/db");
 const hashService = require("../services/hashService");
+const r2Service = require("../services/r2Service");
 let cachedConfig = null;
 
 exports.getConfiguracionAplicacion = async (req, res) => {
@@ -318,11 +319,14 @@ exports.uploadImage = async (req, res) => {
 			return res.status(400).json({ error: "No se recibió ninguna imagen." });
 		}
 
-		// Genera la URL relativa de la imagen
-		const imageUrl = `/assets/images/${req.file.filename}`;
+		const key = r2Service.generateKey("perfil", req.file.mimetype);
+		const result = await r2Service.uploadToR2(
+			req.file.buffer,
+			key,
+			req.file.mimetype,
+		);
 
-		// Responde al frontend con la URL generada
-		res.json({ url: imageUrl }); // Ejemplo: '/assets/images/1717832123.jpg'
+		res.json({ url: result.url });
 	} catch (error) {
 		console.error("[ERROR SUBIR IMAGEN]:", error.message);
 		res.status(500).json({ error: "Error al subir la imagen" });

@@ -28,8 +28,8 @@ class HashService {
 				throw new Error(`Hash Service Error: ${errorText}`);
 			}
 
-			const data = await response.json();
-			return data.hash;
+			const result = await response.json();
+			return result.data.hash;
 		} catch (error) {
 			console.error("[HashService] Error hashing password:", error.message);
 			throw error;
@@ -58,8 +58,8 @@ class HashService {
 				throw new Error(`Hash Service Error: ${errorText}`);
 			}
 
-			const data = await response.json();
-			return data.match;
+			const result = await response.json();
+			return result.data.match;
 		} catch (error) {
 			console.error("[HashService] Error verifying password:", error.message);
 			return false; // Safely return false on error

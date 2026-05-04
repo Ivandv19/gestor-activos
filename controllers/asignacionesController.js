@@ -238,6 +238,7 @@ exports.getAsignacionPorId = async (req, res) => {
         SELECT 
           asignaciones.*,
           activos.nombre AS activo_nombre,
+          activos.foto_url AS activo_foto,
           usuarios.nombre AS usuario_nombre,
           ubicaciones.nombre AS ubicacion_nombre
         FROM asignaciones
@@ -258,7 +259,8 @@ exports.getAsignacionPorId = async (req, res) => {
 		const asignacionData = {
 			id: asignacion[0].id,
 			activo_id: asignacion[0].activo_id,
-			activo_nombre: asignacion[0].activo_nombre,
+			nombre: asignacion[0].activo_nombre,
+			foto_url: asignacion[0].activo_foto,
 			usuario_id: asignacion[0].usuario_id,
 			usuario_nombre: asignacion[0].usuario_nombre,
 			ubicacion_id: asignacion[0].ubicacion_id,
@@ -668,7 +670,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		if (id) {
 			try {
 				const [activo] = await db.query(
-					"SELECT nombre FROM activos WHERE id = ?",
+					"SELECT nombre, foto_url FROM activos WHERE id = ?",
 					[id],
 				);
 
@@ -677,8 +679,9 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 					return res.status(404).json({ error: "Activo no encontrado" });
 				}
 
-				// Asignar el nombre del activo si existe
+				// Asignar el nombre y foto del activo si existe
 				nombreActivo = activo[0].nombre;
+				var fotoActivo = activo[0].foto_url;
 			} catch (queryError) {
 				console.error("Error al consultar activo:", queryError);
 				return res.status(500).json({ error: "Error al obtener el activo" });
@@ -691,7 +694,8 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 			tiposActivos,
 			proveedores,
 			ubicaciones,
-			nombreActivo,
+			nombre: nombreActivo,
+			foto_url: fotoActivo,
 		});
 	} catch (error) {
 		console.error("Error general al obtener datos auxiliares:", error);

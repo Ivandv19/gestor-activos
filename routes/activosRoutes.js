@@ -80,7 +80,12 @@ const imageUpload = require("../middleware/imageUpload"); //
  *                   example: 'Mensaje detallado del error...'
  */
 
-router.patch("/baja/:id", authenticate, activosController.darDeBajaActivo);
+router.patch(
+	"/baja/:id",
+	authenticate,
+	checkRole("Administrador"),
+	activosController.darDeBajaActivo,
+);
 
 /**
  * @swagger
@@ -775,6 +780,7 @@ router.post(
 	"/activos",
 	authenticate,
 	checkRole("Administrador"),
+	imageUpload.imageUploadMiddleware,
 	activosController.createActivo,
 );
 
@@ -1020,6 +1026,7 @@ router.put(
 	"/activos/:id",
 	authenticate,
 	checkRole("Administrador"),
+	imageUpload.imageUploadMiddleware,
 	activosController.updateActivo,
 );
 
@@ -1299,74 +1306,8 @@ router.get(
 router.post(
 	"/validar-etiqueta-serial",
 	authenticate,
+	checkRole("Administrador"),
 	activosController.validarEtiquetaSerial,
-);
-
-/**
- * @swagger
- * /gestion-activos/upload:
- *   post:
- *     summary: Sube una imagen para asociar a un activo
- *     description: |
- *       Sube un archivo de imagen (JPEG, PNG, etc.) al servidor y devuelve su URL relativa.
- *       - Requiere autenticación JWT.
- *       - Tamaño máximo: 5MB.
- *       - Guarda la imagen en `/assets/images/`.
- *     tags: [Activos]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *                 description: Archivo de imagen a subir (max 5MB)
- *     responses:
- *       200:
- *         description: Imagen subida exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 url:
- *                   type: string
- *                   example: "/assets/images/1717832123.jpg"
- *                   description: URL relativa de la imagen guardada
- *       400:
- *         description: Error en la solicitud
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "No se recibió ninguna imagen."
- *       401:
- *         description: No autorizado (token inválido o no proporcionado)
- *       500:
- *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Error al subir la imagen"
- */
-
-router.post(
-	"/upload",
-	authenticate,
-	imageUpload.imageUploadMiddleware,
-	activosController.uploadImage,
 );
 
 module.exports = router;

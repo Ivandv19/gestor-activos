@@ -13,9 +13,17 @@ exports.getResumen = async (req, res) => {
       FROM activos;
     `);
 
-		// Si no hay activos registrados, devolver un mensaje específico
+		// Si no hay activos registrados, devolver ceros en todos los campos
 		if (result[0].total_activos === 0) {
-			return res.status(200).json({ message: "No hay activos registrados" });
+			return res.status(200).json({
+				total_activos: 0,
+				activos_disponibles: 0,
+				activos_asignados: 0,
+				activos_en_mantenimiento: 0,
+				activos_dados_de_baja: 0,
+				tendencia_mensual: { labels: [], data: [] },
+				ano_tendencia: new Date().getFullYear(),
+			});
 		}
 
 		// Calcular el rango de fechas: desde hace un año hasta hoy
@@ -68,7 +76,11 @@ exports.getResumen = async (req, res) => {
 
 		// Devolver las estadísticas junto con la tendencia mensual y el año
 		res.status(200).json({
-			...result[0],
+			total_activos: result[0].total_activos,
+			activos_disponibles: result[0].activos_disponibles,
+			activos_asignados: result[0].activos_asignados,
+			activos_en_mantenimiento: result[0].activos_en_mantenimiento,
+			activos_dados_de_baja: result[0].activos_dados_de_baja,
 			tendencia_mensual: tendenciaMensual,
 			ano_tendencia: ano,
 		});

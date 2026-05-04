@@ -62,9 +62,8 @@ app.get("/api/health", (req, res) => {
 		status: "ok",
 		uptime: process.uptime(),
 		message: "Gestor de Activos Backend is running correctly!",
-		timestamp: new Date().toISOString()
+		timestamp: new Date().toISOString(),
 	});
 });
-
 
 module.exports = app;

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const reporteController = require("../controllers/reporteController");
 const authenticate = require("../middleware/authenticate");
+const checkRole = require("../middleware/checkRole");
 
 /**
  * @swagger
@@ -89,7 +90,12 @@ const authenticate = require("../middleware/authenticate");
  *           example: true
  */
 
-router.get("/tipos", authenticate, reporteController.getTiposReporte);
+router.get(
+	"/tipos",
+	authenticate,
+	checkRole("Administrador"),
+	reporteController.getTiposReporte,
+);
 
 /**
  * @swagger
@@ -176,6 +182,7 @@ router.get("/tipos", authenticate, reporteController.getTiposReporte);
 router.get(
 	"/datos-auxiliares",
 	authenticate,
+	checkRole("Administrador"),
 	reporteController.getDatosAuxiliares,
 );
 
@@ -342,6 +349,11 @@ router.get(
  *               description: Datos detallados del reporte.
  */
 
-router.post("/generar", authenticate, reporteController.generarReporte);
+router.post(
+	"/generar",
+	authenticate,
+	checkRole("Administrador"),
+	reporteController.generarReporte,
+);
 
 module.exports = router;

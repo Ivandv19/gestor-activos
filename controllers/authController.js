@@ -119,7 +119,7 @@ exports.login = async (req, res) => {
 
 		// 3. Buscar usuario
 		const [users] = await db.query(
-			"SELECT id, email, contrasena, rol, foto_url FROM usuarios WHERE email = ?",
+			"SELECT id, nombre, email, contrasena, rol, foto_url FROM usuarios WHERE email = ?",
 			[email],
 		);
 		const user = users[0];
@@ -147,6 +147,7 @@ exports.login = async (req, res) => {
 		const token = jwt.sign(
 			{
 				id: user.id,
+				nombre: user.nombre,
 				email: user.email,
 				rol: user.rol,
 			},
@@ -161,6 +162,7 @@ exports.login = async (req, res) => {
 			token,
 			userData: {
 				id: user.id,
+				nombre: user.nombre,
 				rol: user.rol,
 				email: user.email,
 				foto_url: user.foto_url || null,

@@ -1,25 +1,30 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 
-// Carpeta destino donde se guardarán las imágenes
-const uploadDir = path.join(__dirname, "../mi-carpeta-imagenes");
+const ALLOWED_TYPES = [
+	"image/jpeg",
+	"image/png",
+	"image/webp",
+	"image/svg+xml",
+];
+const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 
-// Configuración de multer para guardar imágenes
-const storage = multer.diskStorage({
-	destination: (req, file, cb) => {
-		if (!fs.existsSync(uploadDir)) {
-			fs.mkdirSync(uploadDir, { recursive: true });
-		}
-		cb(null, uploadDir);
-	},
-	filename: (req, file, cb) => {
-		const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-		cb(null, uniqueSuffix + path.extname(file.originalname));
-	},
+const storage = multer.memoryStorage();
+
+const fileFilter = (req, file, cb) => {
+	if (ALLOWED_TYPES.includes(file.mimetype)) {
+		cb(null, true);
+	} else {
+		cb(
+			new Error("Tipo de archivo no permitido. Solo JPG, PNG, WebP y SVG."),
+			false,
+		);
+	}
+};
+
+const upload = multer({
+	storage,
+	fileFilter,
+	limits: { fileSize: MAX_SIZE },
 });
 
-const upload = multer({ storage });
-
-// Middleware para subir una única imagen
 exports.imageUploadMiddleware = upload.single("file");
