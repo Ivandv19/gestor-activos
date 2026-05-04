@@ -42,15 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Trigger Dokploy deploy
-        env:
-          WEBHOOK: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
-        run: |
-          echo "Triggering Dokploy deploy webhook..."
-          if [ -z "$WEBHOOK" ]; then
-            echo "ERROR: DOKPLOY_WEBHOOK_URL secret is not set in GitHub Secrets"
-            exit 1
-          fi
-          curl -X POST "$WEBHOOK" \
-            -H "User-Agent: Mozilla/5.0 (compatible; GitHub-Actions)" \
-            -H "Accept: application/json"
+      - name: Deploy via SSH to Dokploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "Triggering Dokploy deploy via local curl..."
+            curl -X POST http://localhost:3000/api/deploy/Fg3OXeAYlYfDCKyjWy4Lg
