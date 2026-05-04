@@ -1,5 +1,13 @@
 const request = require("supertest");
 const express = require("express");
+
+// Mock DB
+jest.mock("../config/db", () => ({
+	query: jest.fn(),
+	execute: jest.fn(),
+	end: jest.fn(),
+}));
+
 const db = require("../config/db");
 
 // Create a minimal app with inline routes (bypassing the routes file)
