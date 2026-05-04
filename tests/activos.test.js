@@ -11,16 +11,16 @@ const db = {
 jest.mock("../config/db", () => db);
 
 // 2. Mock Middlewares inline
-const authenticate = (req, res, next) => {
+const authenticate = (req, _res, next) => {
 	req.user = { id: 1, rol: "Administrador" };
 	next();
 };
 
-const checkRole = (role) => (req, res, next) => {
+const checkRole = (_role) => (_req, _res, next) => {
 	next();
 };
 
-const imageUploadMiddleware = (req, res, next) => next();
+const imageUploadMiddleware = (_req, _res, next) => next();
 
 // 3. Create minimal app with inline routes
 const app = express();
@@ -320,7 +320,9 @@ describe("Activos Endpoints", () => {
 			db.query.mockResolvedValueOnce([mockProveedoresGarantia, []]);
 			db.query.mockResolvedValueOnce([mockDuenos, []]);
 
-			const res = await request(app).get("/api/gestion-activos/datos-auxiliares");
+			const res = await request(app).get(
+				"/api/gestion-activos/datos-auxiliares",
+			);
 
 			expect(res.statusCode).toEqual(200);
 			expect(res.body.tipos).toHaveLength(1);
@@ -334,7 +336,9 @@ describe("Activos Endpoints", () => {
 		it("should return 500 on DB error", async () => {
 			db.query.mockRejectedValueOnce(new Error("DB error"));
 
-			const res = await request(app).get("/api/gestion-activos/datos-auxiliares");
+			const res = await request(app).get(
+				"/api/gestion-activos/datos-auxiliares",
+			);
 
 			expect(res.statusCode).toEqual(500);
 		});

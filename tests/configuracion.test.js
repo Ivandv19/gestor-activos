@@ -28,13 +28,13 @@ const app = express();
 app.use(express.json());
 
 // Inline authenticate middleware
-const authenticate = (req, res, next) => {
+const authenticate = (req, _res, next) => {
 	req.user = { id: 1, rol: "Administrador" };
 	next();
 };
 
 // Inline checkRole middleware
-const checkRole = (role) => (req, res, next) => {
+const checkRole = (_role) => (_req, _res, next) => {
 	next();
 };
 
@@ -169,7 +169,7 @@ describe("Configuración Endpoints", () => {
 			appNoAuth.use(express.json());
 			appNoAuth.get(
 				"/api/configuracion/perfil",
-				(req, res, next) => {
+				(req, _res, next) => {
 					req.user = null;
 					next();
 				},

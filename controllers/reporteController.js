@@ -1,6 +1,6 @@
 const db = require("../config/db");
 
-exports.getTiposReporte = async (req, res) => {
+exports.getTiposReporte = async (_req, res) => {
 	try {
 		// Consulta SQL directa a la base de datos
 		const query = "SELECT id, nombre, descripcion, activo FROM tiposreporte";
@@ -31,7 +31,7 @@ exports.getTiposReporte = async (req, res) => {
 	}
 };
 
-exports.getDatosAuxiliares = async (req, res) => {
+exports.getDatosAuxiliares = async (_req, res) => {
 	try {
 		// Consultas SQL para obtener los datos
 		const [tiposActivo] = await db.query("SELECT id, nombre FROM tipos");
@@ -160,7 +160,7 @@ exports.generarReporte = async (req, res) => {
 		}
 
 		// Funciones auxiliares para obtener campos dinámicos
-		function getFechaField(tipo_id) {
+		const getFechaField = (tipo_id) => {
 			if (tipo_id === 1) {
 				// Reporte 1: Activos por estado
 				return ["fecha_registro", "fecha_salida"];
@@ -177,9 +177,9 @@ exports.generarReporte = async (req, res) => {
 				// Valor predeterminado (devolver un array en lugar de un string)
 				return ["fecha_registro", "fecha_salida"];
 			}
-		}
+		};
 
-		function getUbicacionField(tipo_id) {
+		const getUbicacionField = (tipo_id) => {
 			if (tipo_id === 2) {
 				// Reporte 2: Filtrar por el campo "ubicacion_id" en la tabla Asignaciones
 				return "asig.ubicacion_id = ?";
@@ -193,9 +193,9 @@ exports.generarReporte = async (req, res) => {
 				// Para otros tipos de reporte, usar el campo "ubicacion_id" en la tabla Activos
 				return "a.ubicacion_id = ?"; // Usamos alias 'a'
 			}
-		}
+		};
 
-		function getUsuarioField(tipo_id) {
+		const getUsuarioField = (tipo_id) => {
 			if (tipo_id === 1) {
 				// Reporte 1: Filtrar por el campo "id" en la tabla Activos
 				return "asig.usuario_id = ?"; // Usamos alias 'a'
@@ -221,9 +221,9 @@ exports.generarReporte = async (req, res) => {
 				// Para otros tipos de reporte, usar una subconsulta
 				return "a.id = ?"; // Alias 'a'
 			}
-		}
+		};
 
-		function getProveedorField(tipo_id) {
+		const getProveedorField = (tipo_id) => {
 			if (tipo_id === 3) {
 				// Reporte 3: Filtrar por el campo "proveedor_id" en la tabla Garantías
 				return "g.proveedor_garantia_id = ?"; // Usamos alias 'g'
@@ -231,9 +231,9 @@ exports.generarReporte = async (req, res) => {
 				// Para otros tipos de reporte, usar una subconsulta
 				return "a.proveedor_id = ?"; // Suponemos que está en la tabla Activos con alias 'a'
 			}
-		}
+		};
 
-		function getTipoActivoField(tipo_id) {
+		const getTipoActivoField = (tipo_id) => {
 			if (tipo_id === 5) {
 				// Reporte 5: Filtrar por el campo "tipo_id" en la tabla Activos
 				return "a.tipo_id = ?"; // Usamos alias 'a'
@@ -241,7 +241,7 @@ exports.generarReporte = async (req, res) => {
 				// Para otros tipos de reporte, usar una subconsulta
 				return "a.tipo_id = ?"; // Suponemos que está en la tabla Activos con alias 'a'
 			}
-		}
+		};
 
 		// Aplicar filtros dinámicamente
 		if (filtros && Object.keys(filtros).length > 0) {

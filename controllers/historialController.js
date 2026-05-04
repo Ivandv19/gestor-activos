@@ -1,11 +1,11 @@
 const db = require("../config/db");
 
 exports.getHistorialActivo = async (req, res) => {
-	const { id } = req.params;
+	const id = Number(req.params.id);
 
 	try {
 		// Validar que el ID sea un número
-		if (isNaN(id)) {
+		if (Number.isNaN(id)) {
 			return res
 				.status(400)
 				.json({ error: "El ID del activo debe ser un número válido." });
@@ -22,8 +22,8 @@ exports.getHistorialActivo = async (req, res) => {
 		}
 
 		// Parámetros de paginación y filtrado
-		const page = parseInt(req.query.page) || 1;
-		const limit = parseInt(req.query.limit) || 10;
+		const page = parseInt(req.query.page, 10) || 1;
+		const limit = parseInt(req.query.limit, 10) || 10;
 		const offset = (page - 1) * limit;
 		const orden = req.query.orden || "asc";
 		const direccionOrden = orden.toLowerCase() === "desc" ? "DESC" : "ASC";
@@ -97,7 +97,7 @@ exports.getHistorialActivo = async (req, res) => {
 	}
 };
 
-exports.getDatosAuxiliares = async (req, res) => {
+exports.getDatosAuxiliares = async (_req, res) => {
 	try {
 		// Consulta para obtener acciones
 		const [acciones] = await db.query(

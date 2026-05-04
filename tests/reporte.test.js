@@ -7,13 +7,13 @@ const app = express();
 app.use(express.json());
 
 // Inline authenticate middleware
-const authenticate = (req, res, next) => {
+const authenticate = (req, _res, next) => {
 	req.user = { id: 1, rol: "Administrador" };
 	next();
 };
 
 // Inline checkRole middleware
-const checkRole = (role) => (req, res, next) => {
+const checkRole = (_role) => (_req, _res, next) => {
 	next();
 };
 

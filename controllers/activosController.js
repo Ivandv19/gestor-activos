@@ -6,8 +6,8 @@ exports.getActivos = async (req, res) => {
 		console.log("\n[BACKEND] Parámetros recibidos:", req.query);
 
 		// Configuración inicial de paginación y ordenamiento
-		const page = parseInt(req.query.page) || 1; // Página actual (default 1)
-		const limit = parseInt(req.query.limit) || 10; // Límite por página (default 10)
+		const page = parseInt(req.query.page, 10) || 1; // Página actual (default 1)
+		const limit = parseInt(req.query.limit, 10) || 10; // Límite por página (default 10)
 		const offset = (page - 1) * limit; // Cálculo de offset para paginación
 		const orden = req.query.orden || "asc"; // Dirección de ordenamiento (asc/desc)
 		const direccionOrden = orden.toLowerCase() === "desc" ? "DESC" : "ASC"; // Validación orden
@@ -339,14 +339,14 @@ exports.createActivo = async (req, res) => {
 		}
 
 		// Validación numérica para el valor de compra
-		if (isNaN(valor_compra) || parseFloat(valor_compra) <= 0) {
+		if (Number.isNaN(valor_compra) || parseFloat(valor_compra) <= 0) {
 			return res
 				.status(400)
 				.json({ error: "El valor de compra debe ser un número positivo" });
 		}
 
 		// Validación de formato de fecha para adquisición
-		if (isNaN(Date.parse(fecha_adquisicion))) {
+		if (Number.isNaN(Date.parse(fecha_adquisicion))) {
 			return res
 				.status(400)
 				.json({ error: "La fecha de adquisición no es válida" });
@@ -355,7 +355,7 @@ exports.createActivo = async (req, res) => {
 		// Validación opcional para costo mensual
 		if (
 			costo_mensual &&
-			(isNaN(costo_mensual) || parseFloat(costo_mensual) < 0)
+			(Number.isNaN(costo_mensual) || parseFloat(costo_mensual) < 0)
 		) {
 			return res
 				.status(400)
@@ -416,12 +416,15 @@ exports.createActivo = async (req, res) => {
 			}
 
 			// Validación de fechas para garantía
-			if (isNaN(Date.parse(fecha_inicio)) || isNaN(Date.parse(fecha_fin))) {
+			if (
+				Number.isNaN(Date.parse(fecha_inicio)) ||
+				Number.isNaN(Date.parse(fecha_fin))
+			) {
 				return res.status(400).json({ error: "Fechas de garantía no válidas" });
 			}
 
 			// Validación de costo para garantía
-			if (costo && (isNaN(costo) || parseFloat(costo) < 0)) {
+			if (costo && (Number.isNaN(costo) || parseFloat(costo) < 0)) {
 				return res.status(400).json({
 					error: "El costo de la garantía debe ser un número positivo o cero",
 				});
@@ -530,7 +533,7 @@ function formatearFechaParaHistorial(valor) {
 	const fecha = new Date(valor);
 
 	// Verificar si la fecha creada es válida (no es NaN)
-	if (!isNaN(fecha.getTime())) {
+	if (!Number.isNaN(fecha.getTime())) {
 		// Convertir a formato ISO y extraer solo la parte de la fecha (YYYY-MM-DD)
 		return fecha.toISOString().split("T")[0];
 	}
@@ -599,7 +602,7 @@ exports.updateActivo = async (req, res) => {
 
 		if (
 			valor_compra &&
-			(isNaN(valor_compra) || parseFloat(valor_compra) <= 0)
+			(Number.isNaN(valor_compra) || parseFloat(valor_compra) <= 0)
 		) {
 			return res
 				.status(400)
@@ -608,32 +611,32 @@ exports.updateActivo = async (req, res) => {
 
 		if (
 			costo_mensual &&
-			(isNaN(costo_mensual) || parseFloat(costo_mensual) < 0)
+			(Number.isNaN(costo_mensual) || parseFloat(costo_mensual) < 0)
 		) {
 			return res
 				.status(400)
 				.json({ error: "El costo mensual debe ser un número positivo o cero" });
 		}
 
-		if (costo && (isNaN(costo) || parseFloat(costo) < 0)) {
+		if (costo && (Number.isNaN(costo) || parseFloat(costo) < 0)) {
 			return res.status(400).json({
 				error: "El costo de la garantía debe ser un número positivo o cero",
 			});
 		}
 		// Validaciones de formato de fecha
-		if (fecha_adquisicion && isNaN(Date.parse(fecha_adquisicion))) {
+		if (fecha_adquisicion && Number.isNaN(Date.parse(fecha_adquisicion))) {
 			return res
 				.status(400)
 				.json({ error: "La fecha de adquisición no es válida" });
 		}
 
-		if (fecha_registro && isNaN(Date.parse(fecha_registro))) {
+		if (fecha_registro && Number.isNaN(Date.parse(fecha_registro))) {
 			return res
 				.status(400)
 				.json({ error: "La fecha de registro no es válida" });
 		}
 
-		if (fecha_salida && isNaN(Date.parse(fecha_salida))) {
+		if (fecha_salida && Number.isNaN(Date.parse(fecha_salida))) {
 			return res.status(400).json({ error: "La fecha de salida no es válida" });
 		}
 		// Validación de unicidad para etiqueta serial
@@ -1105,7 +1108,7 @@ exports.deleteActivo = async (req, res) => {
 	}
 };
 
-exports.obtenerDatosAuxiliares = async (req, res) => {
+exports.obtenerDatosAuxiliares = async (_req, res) => {
 	try {
 		const estados = [
 			{ id: "Disponible", nombre: "Disponible" },

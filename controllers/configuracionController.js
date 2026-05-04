@@ -1,11 +1,11 @@
-const fs = require("fs").promises;
-const path = require("path");
+const fs = require("node:fs").promises;
+const path = require("node:path");
 const db = require("../config/db");
 const hashService = require("../services/hashService");
 const r2Service = require("../services/r2Service");
 let cachedConfig = null;
 
-exports.getConfiguracionAplicacion = async (req, res) => {
+exports.getConfiguracionAplicacion = async (_req, res) => {
 	try {
 		// Si la configuración ya está en caché, devolverla directamente
 		if (cachedConfig) {

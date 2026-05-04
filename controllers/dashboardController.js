@@ -1,6 +1,6 @@
 const pool = require("../config/db");
 
-exports.getResumen = async (req, res) => {
+exports.getResumen = async (_req, res) => {
 	try {
 		// Consulta para calcular estadísticas generales
 		const [result] = await pool.query(`
@@ -92,7 +92,7 @@ exports.getResumen = async (req, res) => {
 	}
 };
 
-exports.getAlertas = async (req, res) => {
+exports.getAlertas = async (_req, res) => {
 	try {
 		// Consulta para contar licencias próximas a vencer
 		const [licenciasProximas] = await pool.query(`

@@ -3,8 +3,8 @@ const db = require("../config/db");
 exports.getAsignaciones = async (req, res) => {
 	try {
 		// Parámetros de paginación
-		const page = parseInt(req.query.page) || 1;
-		const limit = parseInt(req.query.limit) || 10;
+		const page = parseInt(req.query.page, 10) || 1;
+		const limit = parseInt(req.query.limit, 10) || 10;
 		const offset = (page - 1) * limit;
 
 		const orden = req.query.orden || "asc";
@@ -118,7 +118,7 @@ exports.createAsignacion = async (req, res) => {
 
 		// Validar formato de fecha_asignacion
 		const fechaValida = new Date(fecha_asignacion);
-		if (isNaN(fechaValida.getTime())) {
+		if (Number.isNaN(fechaValida.getTime())) {
 			return res
 				.status(400)
 				.json({ error: "El formato de la fecha de asignación es inválido." });
@@ -363,7 +363,7 @@ exports.updateAsignacion = async (req, res) => {
 			fecha_devolucion !== asignacionExistente[0].fecha_devolucion
 		) {
 			const fechaValida = new Date(fecha_devolucion);
-			if (isNaN(fechaValida.getTime())) {
+			if (Number.isNaN(fechaValida.getTime())) {
 				return res.status(400).json({
 					mensaje: "El formato de la fecha de devolución es inválido.",
 				});
@@ -397,7 +397,7 @@ exports.updateAsignacion = async (req, res) => {
 		const query = `
             UPDATE asignaciones 
             SET ${Object.keys(fieldsToUpdate)
-							.map((key, index) => `${key} = ?`)
+							.map((key, _index) => `${key} = ?`)
 							.join(", ")}
             WHERE id = ?
         `;
@@ -514,8 +514,8 @@ exports.deleteAsignacion = async (req, res) => {
 exports.getActivosDisponibles = async (req, res) => {
 	try {
 		// Parámetros de paginación
-		const page = parseInt(req.query.page) || 1;
-		const limit = parseInt(req.query.limit) || 10;
+		const page = parseInt(req.query.page, 10) || 1;
+		const limit = parseInt(req.query.limit, 10) || 10;
 		const offset = (page - 1) * limit;
 
 		const orden = req.query.orden || "asc";
@@ -615,7 +615,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		console.log("ID recibido:", id);
 
 		// Validar que el ID sea un número
-		if (id && isNaN(Number(id))) {
+		if (id && Number.isNaN(Number(id))) {
 			return res
 				.status(400)
 				.json({ error: "El ID proporcionado no es válido" });
@@ -663,8 +663,9 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 				.json({ error: "Error al obtener las ubicaciones" });
 		}
 
-		// Variable para almacenar el nombre del activo
+		// Variables para almacenar el nombre y foto del activo
 		let nombreActivo = null;
+		let fotoActivo = null;
 
 		// Si se proporciona un ID, buscar el nombre del activo
 		if (id) {
@@ -681,7 +682,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 
 				// Asignar el nombre y foto del activo si existe
 				nombreActivo = activo[0].nombre;
-				var fotoActivo = activo[0].foto_url;
+				fotoActivo = activo[0].foto_url;
 			} catch (queryError) {
 				console.error("Error al consultar activo:", queryError);
 				return res.status(500).json({ error: "Error al obtener el activo" });

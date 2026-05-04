@@ -2,12 +2,12 @@ const db = require("../config/db");
 
 exports.getGarantias = async (req, res) => {
 	try {
-		const page = parseInt(req.query.page) || 1;
-		const limit = parseInt(req.query.limit) || 10;
+		const page = parseInt(req.query.page, 10) || 1;
+		const limit = parseInt(req.query.limit, 10) || 10;
 		const offset = (page - 1) * limit;
 
 		// Validaciones
-		if (isNaN(page) || isNaN(limit)) {
+		if (Number.isNaN(page) || Number.isNaN(limit)) {
 			return res.status(400).json({
 				mensaje: "Los parámetros de paginación deben ser números válidos.",
 			});
@@ -95,7 +95,10 @@ exports.createGarantia = async (req, res) => {
 		const fechaInicioValida = new Date(fecha_inicio);
 		const fechaFinValida = new Date(fecha_fin);
 
-		if (isNaN(fechaInicioValida.getTime()) || isNaN(fechaFinValida.getTime())) {
+		if (
+			Number.isNaN(fechaInicioValida.getTime()) ||
+			Number.isNaN(fechaFinValida.getTime())
+		) {
 			return res
 				.status(400)
 				.json({ mensaje: "El formato de las fechas es inválido." });
@@ -260,7 +263,7 @@ exports.updateGarantia = async (req, res) => {
 		// Validar formato de fecha_fin si se proporciona
 		if (fecha_fin) {
 			const fechaFinValida = new Date(fecha_fin);
-			if (isNaN(fechaFinValida.getTime())) {
+			if (Number.isNaN(fechaFinValida.getTime())) {
 				return res
 					.status(400)
 					.json({ mensaje: "El formato de la fecha de fin es inválido." });
@@ -297,7 +300,7 @@ exports.updateGarantia = async (req, res) => {
 		const query = `
               UPDATE garantias 
               SET ${Object.keys(fieldsToUpdate)
-								.map((key, index) => `${key} = ?`)
+								.map((key, _index) => `${key} = ?`)
 								.join(", ")}
               WHERE id = ?
           `;

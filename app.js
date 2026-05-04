@@ -3,9 +3,9 @@ const express = require("express");
 const morgan = require("morgan");
 const helmet = require("helmet");
 const cors = require("cors");
-const path = require("path");
+const path = require("node:path");
 require("dotenv").config();
-const pool = require("./config/db");
+const _pool = require("./config/db");
 
 // Documentación Swagger
 const { swaggerDocs, swaggerUi } = require("./swagger/swagger");
@@ -57,7 +57,7 @@ app.use("/api/reportes", reporteRoutes);
 app.use("/api/configuracion", configuracionRoutes);
 
 // Endpoint de salud del sistema
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (_req, res) => {
 	res.status(200).json({
 		status: "ok",
 		uptime: process.uptime(),

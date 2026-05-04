@@ -1,6 +1,6 @@
 const request = require("supertest");
 const express = require("express");
-const jwt = require("jsonwebtoken");
+const _jwt = require("jsonwebtoken");
 
 // 1. Mock DB
 const db = {
@@ -112,7 +112,9 @@ describe("Auth Endpoints", () => {
 			hashService.hash.mockResolvedValue("hashed_password_123");
 			db.query.mockResolvedValueOnce({});
 
-			const res = await request(app).post("/api/auth/registro").send(validUserData);
+			const res = await request(app)
+				.post("/api/auth/registro")
+				.send(validUserData);
 
 			expect(res.statusCode).toEqual(201);
 			expect(res.body.message).toBe("Usuario registrado exitosamente");
@@ -133,7 +135,9 @@ describe("Auth Endpoints", () => {
 			const existingUser = [{ id: 1, email: "juan@example.com" }];
 			db.query.mockResolvedValueOnce([existingUser]);
 
-			const res = await request(app).post("/api/auth/registro").send(validUserData);
+			const res = await request(app)
+				.post("/api/auth/registro")
+				.send(validUserData);
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body.error).toBe("El correo electrónico ya está registrado");

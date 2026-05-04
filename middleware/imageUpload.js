@@ -10,7 +10,7 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 
 const storage = multer.memoryStorage();
 
-const fileFilter = (req, file, cb) => {
+const fileFilter = (_req, file, cb) => {
 	if (ALLOWED_TYPES.includes(file.mimetype)) {
 		cb(null, true);
 	} else {

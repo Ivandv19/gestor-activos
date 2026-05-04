@@ -11,16 +11,16 @@ const db = {
 jest.mock("../config/db", () => db);
 
 // 2. Mock Middlewares inline
-const authenticate = (req, res, next) => {
+const authenticate = (req, _res, next) => {
 	req.user = { id: 1, rol: "Administrador", email: "admin@test.com" };
 	next();
 };
 
-const checkRole = (role) => (req, res, next) => {
+const checkRole = (_role) => (_req, _res, next) => {
 	next();
 };
 
-const imageUploadMiddleware = (req, res, next) => next();
+const imageUploadMiddleware = (_req, _res, next) => next();
 
 // 3. Create minimal app with inline routes
 const app = express();
