@@ -42,5 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Deploy
-        run: echo "Dokploy handles automatic deployment from GitHub. No manual deployment steps required."
+      - name: Trigger Dokploy deploy
+        run: |
+          echo "Triggering Dokploy deploy webhook..."
+          curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
