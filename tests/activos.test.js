@@ -279,11 +279,12 @@ describe("Activos Endpoints", () => {
 
 	describe("DELETE /api/gestion-activos/activos/:id", () => {
 		it("should delete activo successfully", async () => {
-			const mockActivo = { id: 1, nombre: "PC to delete" };
+			const mockActivo = { id: 1, nombre: "PC to delete", foto_url: null };
 
-			db.query.mockResolvedValueOnce([[], []]);
-			db.query.mockResolvedValueOnce([[], []]);
 			db.query.mockResolvedValueOnce([[mockActivo], []]);
+			db.query.mockResolvedValueOnce([{}, []]);
+			db.query.mockResolvedValueOnce([{}, []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 
 			const res = await request(app).delete("/api/gestion-activos/activos/1");
@@ -293,8 +294,6 @@ describe("Activos Endpoints", () => {
 		});
 
 		it("should return 404 if activo not found", async () => {
-			db.query.mockResolvedValueOnce([[], []]);
-			db.query.mockResolvedValueOnce([[], []]);
 			db.query.mockResolvedValueOnce([[], []]);
 
 			const res = await request(app).delete("/api/gestion-activos/activos/999");

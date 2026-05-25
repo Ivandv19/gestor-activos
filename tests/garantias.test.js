@@ -203,7 +203,7 @@ describe("Garantias Endpoints", () => {
 			const res = await request(app).post("/api/garantias").send(validGarantia);
 
 			expect(res.statusCode).toEqual(404);
-			expect(res.body).toHaveProperty("mensaje", "El activo no existe.");
+			expect(res.body).toHaveProperty("mensaje", "El activo no existe o está dado de baja.");
 		});
 
 		it("should fail with 404 when proveedor does not exist", async () => {

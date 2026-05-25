@@ -27,8 +27,8 @@ exports.getActivos = async (req, res) => {
 		} = req.query;
 
 		// Preparación de cláusulas WHERE dinámicas
-		const whereClauses = []; // Array para condiciones WHERE
-		const queryParams = []; // Array para valores de parámetros
+		const whereClauses = ["activos.activo = 1"];
+		const queryParams = [];
 
 		if (search) {
 			whereClauses.push(`(MATCH(activos.nombre, activos.descripcion) AGAINST(? IN BOOLEAN MODE) OR activos.id LIKE ?)`);
@@ -166,7 +166,7 @@ exports.getActivoById = async (req, res) => {
       LEFT JOIN proveedores ON activos.proveedor_id = proveedores.id  
       LEFT JOIN ubicaciones ON activos.ubicacion_id = ubicaciones.id  
       LEFT JOIN usuarios ON activos.dueno_id = usuarios.id  
-      WHERE activos.id = ?`,
+      WHERE activos.id = ? AND activos.activo = 1`,
 			[id],
 		);
 
@@ -1078,55 +1078,42 @@ exports.updateActivo = async (req, res) => {
 };
 
 exports.deleteActivo = async (req, res) => {
-	const { id } = req.params; // Extraemos el ID del activo
+	const { id } = req.params;
 
 	try {
-		// Verificar dependencias en otras tablas
-		const [asignaciones] = await db.query(
-			"SELECT id FROM asignaciones WHERE activo_id = ?",
+		const [activo] = await db.query(
+			"SELECT id, nombre, foto_url FROM activos WHERE id = ?",
 			[id],
 		);
-		if (asignaciones.length > 0) {
-			return res.status(400).json({
-				error:
-					"No se puede eliminar el activo porque tiene asignaciones asociadas",
-			});
-		}
-
-		const [garantias] = await db.query(
-			"SELECT id FROM garantias WHERE activo_id = ?",
-			[id],
-		);
-		if (garantias.length > 0) {
-			return res.status(400).json({
-				error:
-					"No se puede eliminar el activo porque tiene garantías asociadas",
-			});
-		}
-
-		// Verificar si el activo existe y obtener la foto
-		const [activoExistente] = await db.query(
-			"SELECT foto_url FROM activos WHERE id = ?",
-			[id],
-		);
-		if (activoExistente.length === 0) {
+		if (activo.length === 0) {
 			return res.status(404).json({ error: "Activo no encontrado" });
 		}
 
-		const foto_url = activoExistente[0].foto_url;
+		const { nombre, foto_url } = activo[0];
 
-		// Eliminar el activo
-		await db.query("DELETE FROM activos WHERE id = ?", [id]);
+		await db.query("START TRANSACTION");
 
-		// Limpiar imagen de R2 si existe
+		await db.query(
+			'UPDATE activos SET activo = 0, estado = "Dado de baja", fecha_salida = CURRENT_DATE WHERE id = ?',
+			[id],
+		);
+
+		const detalles = `Baja permanente del activo "${nombre}"`;
+		await db.query(
+			"INSERT INTO historial (activo_id, accion, usuario_responsable, detalles) VALUES (?, ?, ?, ?)",
+			[id, "Baja del activo", req.user.id, detalles],
+		);
+
+		await db.query("COMMIT");
+
 		if (foto_url) {
 			const key = foto_url.split("/").pop();
 			await r2Service.deleteFromR2(key).catch(() => {});
 		}
 
-		// Respondemos con un mensaje de éxito
 		res.status(200).json({ message: "Activo eliminado exitosamente" });
 	} catch (error) {
+		await db.query("ROLLBACK").catch(() => {});
 		console.error("[ERROR DELETE ACTIVO]:", error.message);
 		res.status(500).json({ error: "Error al eliminar el activo" });
 	}
@@ -1271,7 +1258,7 @@ exports.darDeBajaActivo = async (req, res) => {
 
 		// 5. Actualizar estado y fecha_salida
 		await db.query(
-			'UPDATE activos SET estado = "Dado de baja", fecha_salida = CURRENT_DATE WHERE id = ?',
+			'UPDATE activos SET activo = 0, estado = "Dado de baja", fecha_salida = CURRENT_DATE WHERE id = ?',
 			[id],
 		);
 

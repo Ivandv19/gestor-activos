@@ -97,6 +97,7 @@ exports.generarReporte = async (req, res) => {
         SELECT a.estado, COUNT(*) AS cantidad
         FROM activos a
         LEFT JOIN asignaciones asig ON a.id = asig.activo_id
+        WHERE a.activo = 1
         GROUP BY a.estado;
     `;
 				break;
@@ -106,7 +107,8 @@ exports.generarReporte = async (req, res) => {
       SELECT u.nombre AS usuario, COUNT(a.id) AS cantidad
       FROM asignaciones asig
       JOIN usuarios u ON asig.usuario_id = u.id
-      JOIN activos a ON asig.activo_id = a.id
+      JOIN activos a ON asig.activo_id = a.id AND a.activo = 1
+      WHERE asig.activo = 1
       GROUP BY u.nombre;
     `;
 				break;
@@ -115,7 +117,8 @@ exports.generarReporte = async (req, res) => {
 				queryBase = `
           SELECT g.estado, COUNT(*) AS cantidad
           FROM garantias g
-          JOIN activos a ON g.activo_id = a.id
+          JOIN activos a ON g.activo_id = a.id AND a.activo = 1
+          WHERE g.activo = 1
           GROUP BY g.estado;
         `;
 				break;
@@ -125,6 +128,7 @@ exports.generarReporte = async (req, res) => {
           SELECT SUM(a.valor_compra) AS costo_total
           FROM activos a
           LEFT JOIN asignaciones asig ON a.id = asig.activo_id
+          WHERE a.activo = 1
         `;
 				break;
 
@@ -132,8 +136,9 @@ exports.generarReporte = async (req, res) => {
 				queryBase = `
       SELECT a.nombre AS activo, u.nombre AS usuario, asig.fecha_asignacion, asig.fecha_devolucion
       FROM asignaciones asig
-      JOIN activos a ON asig.activo_id = a.id
+      JOIN activos a ON asig.activo_id = a.id AND a.activo = 1
       JOIN usuarios u ON asig.usuario_id = u.id
+      WHERE asig.activo = 1
     `;
 				break;
 
@@ -142,6 +147,7 @@ exports.generarReporte = async (req, res) => {
       SELECT t.nombre AS tipo, COUNT(a.id) AS cantidad
       FROM activos a
       JOIN tipos t ON a.tipo_id = t.id
+      WHERE a.activo = 1
       GROUP BY t.nombre;
     `;
 				break;
@@ -151,6 +157,7 @@ exports.generarReporte = async (req, res) => {
       SELECT u.nombre AS ubicacion, COUNT(a.id) AS cantidad
       FROM activos a
       JOIN ubicaciones u ON a.ubicacion_id = u.id
+      WHERE a.activo = 1
       GROUP BY u.nombre;
     `;
 				break;

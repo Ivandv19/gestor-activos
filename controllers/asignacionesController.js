@@ -38,7 +38,9 @@ exports.getAsignaciones = async (req, res) => {
 			queryParams.push(usuario_asignado);
 		}
 
-		// Combinar condiciones con AND
+		// Filtro base: solo asignaciones activas
+		whereClauses.push("a.activo = 1");
+
 		const whereClause =
 			whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
@@ -47,7 +49,7 @@ exports.getAsignaciones = async (req, res) => {
       SELECT 
         a.id, 
         ac.nombre AS activo, 
-        t.nombre AS tipo_activo, -- Obtener el nombre del tipo desde la tabla Tipos
+        t.nombre AS tipo_activo,
         ac.estado AS estado_activo, 
         u.nombre AS usuario, 
         ub.nombre AS ubicacion, 
@@ -57,12 +59,12 @@ exports.getAsignaciones = async (req, res) => {
         ac.foto_url AS foto_url
 
       FROM asignaciones a
-      JOIN activos ac ON a.activo_id = ac.id
-      JOIN tipos t ON ac.tipo_id = t.id -- Unir con la tabla Tipos para obtener el tipo
+      JOIN activos ac ON a.activo_id = ac.id AND ac.activo = 1
+      JOIN tipos t ON ac.tipo_id = t.id
       JOIN usuarios u ON a.usuario_id = u.id
       JOIN ubicaciones ub ON a.ubicacion_id = ub.id
       ${whereClause}
-      ORDER BY a.id ${direccionOrden} -- Ordenamiento
+      ORDER BY a.id ${direccionOrden}
       LIMIT ? OFFSET ?
     `;
 		queryParams.push(limit, offset);
@@ -127,7 +129,7 @@ exports.createAsignacion = async (req, res) => {
 		const [validaciones] = await db.query(
 			`
             SELECT 
-                (SELECT COUNT(*) FROM activos WHERE id = ?) AS activo_existe,
+                (SELECT COUNT(*) FROM activos WHERE id = ? AND activo = 1) AS activo_existe,
                 (SELECT COUNT(*) FROM usuarios WHERE id = ?) AS usuario_existe,
                 (SELECT COUNT(*) FROM ubicaciones WHERE id = ?) AS ubicacion_existe
         `,
@@ -135,7 +137,7 @@ exports.createAsignacion = async (req, res) => {
 		);
 
 		if (validaciones[0].activo_existe === 0) {
-			return res.status(404).json({ error: "El activo no existe." });
+			return res.status(404).json({ error: "El activo no existe o está dado de baja." });
 		}
 		if (validaciones[0].usuario_existe === 0) {
 			return res.status(404).json({ error: "El usuario no existe." });
@@ -480,9 +482,8 @@ exports.deleteAsignacion = async (req, res) => {
 			'UPDATE activos SET estado = "Disponible" WHERE id = ?';
 		await db.query(updateActivoQuery, [activo_id]);
 
-		// Paso 3: Eliminar la asignación
-		const deleteAsignacionQuery = "DELETE FROM asignaciones WHERE id = ?";
-		await db.query(deleteAsignacionQuery, [id]);
+		// Paso 3: Eliminación lógica de la asignación
+		await db.query("UPDATE asignaciones SET activo = 0 WHERE id = ?", [id]);
 
 		// Paso 4: Registrar en el historial
 		const accion = "Desasignado";
@@ -534,8 +535,7 @@ exports.getActivosDisponibles = async (req, res) => {
 		// Parámetros de filtrado (todos opcionales)
 		const { search = "", tipo, ubicacion, proveedores } = req.query;
 
-		// Construir WHERE dinámico
-		const whereClauses = ["activos.estado = 'Disponible'"]; // Filtro base: solo activos "Disponibles"
+		const whereClauses = ["activos.activo = 1", "activos.estado = 'Disponible'"];
 		const queryParams = [];
 
 		// Búsqueda general (nombre)

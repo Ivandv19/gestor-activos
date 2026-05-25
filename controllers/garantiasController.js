@@ -13,22 +13,23 @@ exports.getGarantias = async (req, res) => {
 			});
 		}
 
-		// Consulta principal para obtener todas las garantías
+		// Consulta principal para obtener las garantías activas
 		const query = `
             SELECT g.id, a.nombre AS activo, pg.nombre AS proveedor_garantia, 
                    DATE_FORMAT(g.fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
                    DATE_FORMAT(g.fecha_fin, '%Y-%m-%d') AS fecha_fin,
                    g.costo, g.condiciones, g.estado, g.descripcion, g.nombre_garantia
             FROM garantias g
-            JOIN activos a ON g.activo_id = a.id
+            JOIN activos a ON g.activo_id = a.id AND a.activo = 1
             JOIN proveedoresgarantia pg ON g.proveedor_garantia_id = pg.id
+            WHERE g.activo = 1
             LIMIT ? OFFSET ?
         `;
 		const [results] = await db.query(query, [limit, offset]);
 
 		// Recuento total para paginación
 		const [countResult] = await db.query(
-			"SELECT COUNT(*) AS total FROM garantias",
+			"SELECT COUNT(*) AS total FROM garantias WHERE activo = 1",
 		);
 		const total = countResult[0].total;
 
@@ -117,13 +118,13 @@ exports.createGarantia = async (req, res) => {
 				.json({ mensaje: "El estado proporcionado no es válido." });
 		}
 
-		// Verificar que el activo y el proveedor existan en la base de datos
+		// Verificar que el activo exista y esté activo
 		const [activo] = await db.query(
-			"SELECT id, nombre FROM activos WHERE id = ?",
+			"SELECT id, nombre FROM activos WHERE id = ? AND activo = 1",
 			[activo_id],
 		);
 		if (activo.length === 0) {
-			return res.status(404).json({ mensaje: "El activo no existe." });
+			return res.status(404).json({ mensaje: "El activo no existe o está dado de baja." });
 		}
 
 		const [proveedor] = await db.query(
@@ -374,8 +375,7 @@ exports.updateGarantia = async (req, res) => {
 exports.deleteGarantia = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const query = "DELETE FROM garantias WHERE id = ?";
-		await db.query(query, [id]);
+		await db.query("UPDATE garantias SET activo = 0 WHERE id = ?", [id]);
 		res.json({ message: "Garantía eliminada correctamente" });
 	} catch (error) {
 		res.status(500).json({ message: "Error al eliminar la garantía", error });

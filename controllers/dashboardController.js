@@ -10,7 +10,8 @@ exports.getResumen = async (_req, res) => {
         SUM(CASE WHEN estado = 'Asignado' THEN 1 ELSE 0 END) AS activos_asignados,
         SUM(CASE WHEN estado = 'En mantenimiento' THEN 1 ELSE 0 END) AS activos_en_mantenimiento,
         SUM(CASE WHEN estado = 'Dado de baja' THEN 1 ELSE 0 END) AS activos_dados_de_baja
-      FROM activos;
+      FROM activos
+      WHERE activo = 1;
     `);
 
 		// Si no hay activos registrados, devolver ceros en todos los campos
@@ -56,6 +57,7 @@ exports.getResumen = async (_req, res) => {
       LEFT JOIN activos a 
         ON MONTH(a.fecha_registro) = m.numero 
         AND a.fecha_registro >= ? AND a.fecha_registro <= ?
+        AND a.activo = 1
       GROUP BY m.mes, m.numero, YEAR(a.fecha_registro)
       ORDER BY YEAR(a.fecha_registro), m.numero;
     `,
@@ -98,28 +100,28 @@ exports.getAlertas = async (_req, res) => {
 		const [licenciasProximas] = await pool.query(`
             SELECT COUNT(*) AS count
             FROM activos
-            WHERE tipo_id = 2 AND fecha_vencimiento_licencia BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
+            WHERE activo = 1 AND tipo_id = 2 AND fecha_vencimiento_licencia BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
         `);
 
 		// Consulta para contar garantías próximas a expirar
 		const [garantiasProximas] = await pool.query(`
             SELECT COUNT(*) AS count
             FROM garantias
-            WHERE fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
+            WHERE activo = 1 AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
           `);
 
 		// Consulta para contar activos en mantenimiento
 		const [activosMantenimiento] = await pool.query(`
             SELECT COUNT(*) AS count
             FROM activos
-            WHERE estado = 'En mantenimiento';
+            WHERE activo = 1 AND estado = 'En mantenimiento';
         `);
 
 		// Consulta para contar activos próximos a devolver
 		const [activosDevolver] = await pool.query(`
             SELECT COUNT(*) AS count
             FROM asignaciones
-            WHERE fecha_devolucion BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
+            WHERE activo = 1 AND fecha_devolucion BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
         `);
 
 		// Devolver un resumen numérico de las alertas
