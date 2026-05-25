@@ -136,7 +136,9 @@ describe("Activos Endpoints", () => {
 				proveedor_id: 1,
 			};
 
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{ insertId: 10 }, []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 
 			const res = await request(app)
@@ -162,6 +164,8 @@ describe("Activos Endpoints", () => {
 
 			db.query.mockResolvedValueOnce([[mockActivo], []]);
 			db.query.mockResolvedValueOnce([[], []]);
+			db.query.mockResolvedValueOnce([{}, []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 
@@ -193,7 +197,9 @@ describe("Activos Endpoints", () => {
 			db.query.mockResolvedValueOnce([[{ nombre: "Ubicacion 1" }], []]);
 			db.query.mockResolvedValueOnce([[{ nombre: "Dueno 1" }], []]);
 			db.query.mockResolvedValueOnce([{}, []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([[], []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([[mockActivoExistente], []]);
 			db.query.mockResolvedValueOnce([[], []]);

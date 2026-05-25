@@ -30,10 +30,9 @@ exports.getActivos = async (req, res) => {
 		const whereClauses = []; // Array para condiciones WHERE
 		const queryParams = []; // Array para valores de parámetros
 
-		// Construcción de condiciones de búsqueda
 		if (search) {
-			whereClauses.push(`(activos.nombre LIKE ? OR activos.id LIKE ?)`); // Búsqueda en nombre o ID
-			queryParams.push(`%${search}%`, `%${search}%`); // Parámetros para LIKE
+			whereClauses.push(`(MATCH(activos.nombre, activos.descripcion) AGAINST(? IN BOOLEAN MODE) OR activos.id LIKE ?)`);
+			queryParams.push(`${search}*`, `%${search}%`);
 		}
 
 		// Agregar filtros específicos si están presentes
@@ -304,6 +303,8 @@ exports.createActivo = async (req, res) => {
 		descripcion_garantia,
 	} = req.body;
 
+	let foto_url = null;
+
 	try {
 		console.log("[CREATE ACTIVO] Recibiendo:", {
 			nombre,
@@ -312,7 +313,6 @@ exports.createActivo = async (req, res) => {
 		});
 
 		// Subir imagen a R2 si se recibio archivo
-		let foto_url = null;
 		if (req.file) {
 			const key = r2Service.generateKey(nombre, req.file.mimetype);
 			console.log("[CREATE ACTIVO] Subiendo a R2:", key);
@@ -470,7 +470,8 @@ exports.createActivo = async (req, res) => {
 		addField("etiqueta_serial", etiqueta_serial);
 		addField("condicion_fisica", condicion_fisica);
 
-		// Ejecutar inserción del activo
+		await db.query("START TRANSACTION");
+
 		const query = `INSERT INTO activos (${fields.join(", ")}) VALUES (${values.map(() => "?").join(", ")})`;
 		const [result] = await db.query(query, values);
 
@@ -510,6 +511,8 @@ exports.createActivo = async (req, res) => {
 			],
 		);
 
+		await db.query("COMMIT");
+
 		// Respuesta exitosa
 		console.log(
 			`[CREATE ACTIVO] OK id=${activoId} nombre="${nombre}" foto_url=${foto_url || "ninguna"}`,
@@ -518,6 +521,11 @@ exports.createActivo = async (req, res) => {
 			.status(201)
 			.json({ id: activoId, message: "Activo creado exitosamente" });
 	} catch (error) {
+		await db.query("ROLLBACK").catch(() => {});
+		if (foto_url) {
+			const key = foto_url.split("/").pop();
+			await r2Service.deleteFromR2(key).catch(() => {});
+		}
 		console.error("[ERROR CREATE ACTIVO]:", error.message);
 		res.status(500).json({ error: "Error al crear el activo" });
 	}
@@ -874,7 +882,8 @@ exports.updateActivo = async (req, res) => {
 				.json({ error: "No se proporcionaron datos para actualizar" });
 		}
 
-		// Ejecutar actualización
+		await db.query("START TRANSACTION");
+
 		values.push(id);
 		const query = `UPDATE activos SET ${updates.join(", ")} WHERE id = ?`;
 		await db.query(query, values);
@@ -1024,6 +1033,8 @@ exports.updateActivo = async (req, res) => {
 			],
 		);
 
+		await db.query("COMMIT");
+
 		// 7. Obtener y devolver datos actualizados
 		const [updatedActivo] = await db.query(
 			"SELECT * FROM activos WHERE id = ?",
@@ -1041,6 +1052,11 @@ exports.updateActivo = async (req, res) => {
 			garantia: updatedGarantia[0] || null,
 		});
 	} catch (error) {
+		await db.query("ROLLBACK").catch(() => {});
+		if (req.file && foto_url) {
+			const key = foto_url.split("/").pop();
+			await r2Service.deleteFromR2(key).catch(() => {});
+		}
 		console.error("[ERROR UPDATE ACTIVO]:", error.message);
 
 		if (error.code === "ER_DUP_ENTRY") {
@@ -1088,17 +1104,25 @@ exports.deleteActivo = async (req, res) => {
 			});
 		}
 
-		// Verificar si el activo existe
+		// Verificar si el activo existe y obtener la foto
 		const [activoExistente] = await db.query(
-			"SELECT * FROM activos WHERE id = ?",
+			"SELECT foto_url FROM activos WHERE id = ?",
 			[id],
 		);
 		if (activoExistente.length === 0) {
 			return res.status(404).json({ error: "Activo no encontrado" });
 		}
 
+		const foto_url = activoExistente[0].foto_url;
+
 		// Eliminar el activo
 		await db.query("DELETE FROM activos WHERE id = ?", [id]);
+
+		// Limpiar imagen de R2 si existe
+		if (foto_url) {
+			const key = foto_url.split("/").pop();
+			await r2Service.deleteFromR2(key).catch(() => {});
+		}
 
 		// Respondemos con un mensaje de éxito
 		res.status(200).json({ message: "Activo eliminado exitosamente" });
@@ -1243,6 +1267,8 @@ exports.darDeBajaActivo = async (req, res) => {
 			});
 		}
 
+		await db.query("START TRANSACTION");
+
 		// 5. Actualizar estado y fecha_salida
 		await db.query(
 			'UPDATE activos SET estado = "Dado de baja", fecha_salida = CURRENT_DATE WHERE id = ?',
@@ -1256,12 +1282,15 @@ exports.darDeBajaActivo = async (req, res) => {
 			[id, "Baja del activo", req.user.id, detallesHistorial],
 		);
 
+		await db.query("COMMIT");
+
 		// 7. Respuesta exitosa
 		res.json({
 			success: true,
 			message: `Activo "${activoData.nombre}" dado de baja exitosamente.`,
 		});
 	} catch (error) {
+		await db.query("ROLLBACK").catch(() => {});
 		console.error("Error en darDeBajaActivo:", error);
 		res.status(500).json({
 			success: false,

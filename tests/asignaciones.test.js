@@ -107,7 +107,9 @@ describe("Asignaciones Endpoints", () => {
 			db.query.mockResolvedValueOnce([[{ nombre: "Laptop" }], []]);
 			db.query.mockResolvedValueOnce([[{ nombre: "Juan" }], []]);
 			db.query.mockResolvedValueOnce([[{ nombre: "Oficina" }], []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{ insertId: 50 }, []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 
@@ -151,6 +153,8 @@ describe("Asignaciones Endpoints", () => {
 			};
 
 			db.query.mockResolvedValueOnce([[mockAsignacion], []]);
+			db.query.mockResolvedValueOnce([{}, []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);

@@ -19,10 +19,9 @@ exports.getAsignaciones = async (req, res) => {
 		const whereClauses = [];
 		const queryParams = [];
 
-		// Búsqueda general (ID o nombre del activo)
 		if (search) {
-			whereClauses.push(`(ac.id LIKE ? OR ac.nombre LIKE ?)`);
-			queryParams.push(`%${search}%`, `%${search}%`);
+			whereClauses.push(`(ac.id LIKE ? OR MATCH(ac.nombre) AGAINST(? IN BOOLEAN MODE))`);
+			queryParams.push(`%${search}%`, `${search}*`);
 		}
 
 		// Filtros específicos
@@ -161,6 +160,8 @@ exports.createAsignacion = async (req, res) => {
 		// Generar un comentario dinámico
 		const comentariosDinamicos = `Activo "${activo[0].nombre}" asignado al usuario "${usuario[0].nombre}" en la ubicación "${ubicacion[0].nombre}".`;
 
+		await db.query("START TRANSACTION");
+
 		// Insertar la nueva asignación
 		const insertQuery = `
             INSERT INTO asignaciones (activo_id, usuario_id, ubicacion_id, fecha_asignacion, fecha_devolucion, comentarios)
@@ -183,6 +184,7 @@ exports.createAsignacion = async (req, res) => {
 
 		// Registrar la acción en el historial
 		if (!req.user || !req.user.id) {
+			await db.query("ROLLBACK");
 			return res.status(401).json({ error: "Acceso no autorizado." });
 		}
 
@@ -198,6 +200,8 @@ exports.createAsignacion = async (req, res) => {
 			],
 		);
 
+		await db.query("COMMIT");
+
 		// Respuesta
 		res.json({
 			id: result.insertId,
@@ -210,6 +214,7 @@ exports.createAsignacion = async (req, res) => {
 			message: "Asignación creada correctamente.",
 		});
 	} catch (error) {
+		await db.query("ROLLBACK").catch(() => {});
 		console.error("[ERROR CREATE ASIGNACION]:", error.message);
 
 		// Manejo de errores específicos
@@ -468,6 +473,8 @@ exports.deleteAsignacion = async (req, res) => {
 
 		const { activo_id, activo_nombre } = asignacion[0];
 
+		await db.query("START TRANSACTION");
+
 		// Paso 2: Actualizar el estado del activo a "Disponible"
 		const updateActivoQuery =
 			'UPDATE activos SET estado = "Disponible" WHERE id = ?';
@@ -493,9 +500,11 @@ exports.deleteAsignacion = async (req, res) => {
 		await db.query(insertHistorialQuery, [
 			activo_id,
 			accion,
-			req.user.id, // ID del usuario autenticado (debes tenerlo en req.user)
+			req.user.id,
 			detalles,
 		]);
+
+		await db.query("COMMIT");
 
 		// Respuesta exitosa
 		res.json({
@@ -506,6 +515,7 @@ exports.deleteAsignacion = async (req, res) => {
 			},
 		});
 	} catch (error) {
+		await db.query("ROLLBACK").catch(() => {});
 		console.error(error);
 		res.status(500).json({ error: "Error interno del servidor" });
 	}

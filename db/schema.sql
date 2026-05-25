@@ -90,6 +90,7 @@ CREATE TABLE `activos` (
   KEY `dueno_id` (`dueno_id`),
   KEY `idx_estado` (`estado`),
   KEY `idx_nombre` (`nombre`),
+  FULLTEXT KEY `ft_search` (`nombre`, `descripcion`),
   CONSTRAINT `activos_ibfk_1` FOREIGN KEY (`tipo_id`) REFERENCES `tipos` (`id`),
   CONSTRAINT `activos_ibfk_2` FOREIGN KEY (`proveedor_id`) REFERENCES `proveedores` (`id`),
   CONSTRAINT `activos_ibfk_3` FOREIGN KEY (`ubicacion_id`) REFERENCES `ubicaciones` (`id`),
