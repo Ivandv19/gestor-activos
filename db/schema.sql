@@ -88,6 +88,8 @@ CREATE TABLE `activos` (
   KEY `proveedor_id` (`proveedor_id`),
   KEY `ubicacion_id` (`ubicacion_id`),
   KEY `dueno_id` (`dueno_id`),
+  KEY `idx_estado` (`estado`),
+  KEY `idx_nombre` (`nombre`),
   CONSTRAINT `activos_ibfk_1` FOREIGN KEY (`tipo_id`) REFERENCES `tipos` (`id`),
   CONSTRAINT `activos_ibfk_2` FOREIGN KEY (`proveedor_id`) REFERENCES `proveedores` (`id`),
   CONSTRAINT `activos_ibfk_3` FOREIGN KEY (`ubicacion_id`) REFERENCES `ubicaciones` (`id`),
@@ -110,6 +112,7 @@ CREATE TABLE `asignaciones` (
   KEY `activo_id` (`activo_id`),
   KEY `usuario_id` (`usuario_id`),
   KEY `ubicacion_id` (`ubicacion_id`),
+  KEY `idx_fecha_devolucion` (`fecha_devolucion`),
   CONSTRAINT `asignaciones_ibfk_1` FOREIGN KEY (`activo_id`) REFERENCES `activos` (`id`),
   CONSTRAINT `asignaciones_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
   CONSTRAINT `asignaciones_ibfk_3` FOREIGN KEY (`ubicacion_id`) REFERENCES `ubicaciones` (`id`)
@@ -148,6 +151,7 @@ CREATE TABLE `garantias` (
   PRIMARY KEY (`id`),
   KEY `activo_id` (`activo_id`),
   KEY `proveedor_garantia_id` (`proveedor_garantia_id`),
+  KEY `idx_fecha_fin` (`fecha_fin`),
   CONSTRAINT `garantias_ibfk_1` FOREIGN KEY (`activo_id`) REFERENCES `activos` (`id`),
   CONSTRAINT `garantias_ibfk_2` FOREIGN KEY (`proveedor_garantia_id`) REFERENCES `proveedoresgarantia` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -170,6 +174,8 @@ CREATE TABLE `historial` (
   KEY `usuario_responsable` (`usuario_responsable`),
   KEY `fk_usuario_asignado` (`usuario_asignado`),
   KEY `fk_ubicacion_nueva` (`ubicacion_nueva`),
+  KEY `idx_accion` (`accion`),
+  KEY `idx_activo_id_fecha` (`activo_id`, `fecha`),
   CONSTRAINT `fk_ubicacion_nueva` FOREIGN KEY (`ubicacion_nueva`) REFERENCES `ubicaciones` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_usuario_asignado` FOREIGN KEY (`usuario_asignado`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   CONSTRAINT `historial_ibfk_1` FOREIGN KEY (`activo_id`) REFERENCES `activos` (`id`),
