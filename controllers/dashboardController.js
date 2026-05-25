@@ -100,7 +100,7 @@ exports.getAlertas = async (_req, res) => {
 		const [licenciasProximas] = await pool.query(`
             SELECT COUNT(*) AS count
             FROM activos
-            WHERE activo = 1 AND tipo_id = 2 AND fecha_vencimiento_licencia BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
+            WHERE activo = 1 AND fecha_vencimiento_licencia IS NOT NULL AND fecha_vencimiento_licencia BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
         `);
 
 		// Consulta para contar garantías próximas a expirar
