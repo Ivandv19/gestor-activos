@@ -1,7 +1,6 @@
 const request = require("supertest");
 const express = require("express");
 
-// Mock DB
 const db = {
 	query: jest.fn(),
 	execute: jest.fn(),
@@ -10,38 +9,31 @@ const db = {
 
 jest.mock("../config/db", () => db);
 
-// Mock hashService
 jest.mock("../services/hashService", () => ({
 	hash: jest.fn(),
 	verify: jest.fn(),
 }));
 const hashService = require("../services/hashService");
 
-// Mock r2Service
 jest.mock("../services/r2Service", () => ({
 	generateKey: jest.fn(),
 	uploadToR2: jest.fn(),
 }));
 
-// Create a minimal app with inline routes
 const app = express();
 app.use(express.json());
 
-// Inline authenticate middleware
 const authenticate = (req, _res, next) => {
 	req.user = { id: 1, rol: "Administrador" };
 	next();
 };
 
-// Inline checkRole middleware
 const checkRole = (_role) => (_req, _res, next) => {
 	next();
 };
 
-// Import controller
 const configuracionController = require("../controllers/configuracionController");
 
-// Define routes inline
 app.get(
 	"/api/configuracion/aplicacion",
 	authenticate,
@@ -70,14 +62,39 @@ describe("Configuración Endpoints", () => {
 	});
 
 	describe("GET /api/configuracion/aplicacion", () => {
-		it("should return application configuration from file", async () => {
+		it("should return application configuration from DB", async () => {
+			const mockConfig = {
+				idioma: "es",
+				zona_horaria: "UTC-5",
+				formato_fecha: "DD/MM/YYYY",
+				formato_moneda: "USD",
+			};
+
+			db.query.mockResolvedValueOnce([[mockConfig], []]);
+
 			const res = await request(app).get("/api/configuracion/aplicacion");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("idioma");
-			expect(res.body).toHaveProperty("zona_horaria");
-			expect(res.body).toHaveProperty("formato_fecha");
-			expect(res.body).toHaveProperty("formato_moneda");
+			expect(res.body.idioma).toEqual("es");
+			expect(res.body.zona_horaria).toEqual("UTC-5");
+			expect(res.body.formato_fecha).toEqual("DD/MM/YYYY");
+			expect(res.body.formato_moneda).toEqual("USD");
+		});
+
+		it("should return 404 when config not found", async () => {
+			db.query.mockResolvedValueOnce([[], []]);
+
+			const res = await request(app).get("/api/configuracion/aplicacion");
+
+			expect(res.statusCode).toEqual(404);
+		});
+
+		it("should return 500 on DB error", async () => {
+			db.query.mockRejectedValueOnce(new Error("DB error"));
+
+			const res = await request(app).get("/api/configuracion/aplicacion");
+
+			expect(res.statusCode).toEqual(500);
 		});
 	});
 
@@ -89,6 +106,8 @@ describe("Configuración Endpoints", () => {
 				formato_fecha: "DD/MM/YYYY",
 				formato_moneda: "USD",
 			};
+
+			db.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
 			const res = await request(app)
 				.put("/api/configuracion/aplicacion")
@@ -144,6 +163,21 @@ describe("Configuración Endpoints", () => {
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty("message");
 			expect(res.body.message).toContain("Zona horaria no válida");
+		});
+
+		it("should return 500 on DB error", async () => {
+			db.query.mockRejectedValueOnce(new Error("DB error"));
+
+			const res = await request(app)
+				.put("/api/configuracion/aplicacion")
+				.send({
+					idioma: "es",
+					zona_horaria: "UTC-5",
+					formato_fecha: "DD/MM/YYYY",
+					formato_moneda: "USD",
+				});
+
+			expect(res.statusCode).toEqual(500);
 		});
 	});
 

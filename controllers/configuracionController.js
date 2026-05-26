@@ -1,49 +1,20 @@
-const fs = require("node:fs").promises;
-const path = require("node:path");
 const db = require("../config/db");
 const hashService = require("../services/hashService");
 const r2Service = require("../services/r2Service");
-let cachedConfig = null;
 
 exports.getConfiguracionAplicacion = async (_req, res) => {
 	try {
-		// Si la configuración ya está en caché, devolverla directamente
-		if (cachedConfig) {
-			return res.json(cachedConfig);
+		const [rows] = await db.query(
+			"SELECT idioma, zona_horaria, formato_fecha, formato_moneda FROM configuracion WHERE id = 1",
+		);
+
+		if (rows.length === 0) {
+			return res.status(404).json({ message: "Configuración no encontrada" });
 		}
 
-		// Construir la ruta del archivo
-		const filePath = path.join(__dirname, "../config/globalConfig.json");
-
-		// Leer el archivo con la codificación correcta
-		const rawData = await fs.readFile(filePath, { encoding: "utf8" });
-
-		// Parsear el contenido JSON
-		let configuracionGlobal;
-		try {
-			configuracionGlobal = JSON.parse(rawData);
-		} catch (parseError) {
-			return res.status(500).json({
-				message: "El archivo de configuración no es un JSON válido",
-				error: parseError.message,
-			});
-		}
-
-		// Almacenar la configuración en caché
-		cachedConfig = configuracionGlobal;
-
-		// Devolver la configuración como respuesta
-		res.json(configuracionGlobal);
+		res.json(rows[0]);
 	} catch (error) {
-		// Manejar errores específicos
-		if (error.code === "ENOENT") {
-			return res.status(404).json({
-				message: "El archivo de configuración no fue encontrado",
-				error: error.message,
-			});
-		}
-
-		// Error genérico
+		console.error("[ERROR GET CONFIG]:", error.message);
 		res.status(500).json({
 			message: "Error al obtener la configuración global",
 			error: error.message,
@@ -55,16 +26,14 @@ exports.updateConfiguracionAplicacion = async (req, res) => {
 	try {
 		const { idioma, zona_horaria, formato_fecha, formato_moneda } = req.body;
 
-		// Validar que se proporcionen todos los campos necesarios
 		if (!idioma || !zona_horaria || !formato_fecha || !formato_moneda) {
 			return res
 				.status(400)
 				.json({ message: "Todos los campos son obligatorios." });
 		}
 
-		// Validar contenido de los campos
-		const validLanguages = ["es", "en", "fr"]; // Ejemplo de idiomas válidos
-		const validTimeZones = ["UTC-5", "UTC+1", "UTC+2"]; // Ejemplo de zonas horarias válidas
+		const validLanguages = ["es", "en", "fr"];
+		const validTimeZones = ["UTC-5", "UTC+1", "UTC+2"];
 
 		if (!validLanguages.includes(idioma)) {
 			return res.status(400).json({ message: "Idioma no válido." });
@@ -74,69 +43,17 @@ exports.updateConfiguracionAplicacion = async (req, res) => {
 			return res.status(400).json({ message: "Zona horaria no válida." });
 		}
 
-		// Construir la ruta del archivo
-		const filePath = path.join(__dirname, "../config/globalConfig.json");
-
-		// Leer el archivo existente
-		let rawData;
-		try {
-			rawData = await fs.readFile(filePath, { encoding: "utf8" });
-		} catch (readError) {
-			return res.status(500).json({
-				message: "Error al leer el archivo de configuración",
-				error: readError.message,
-			});
-		}
-
-		// Parsear el contenido JSON
-		let configuracionExistente;
-		try {
-			configuracionExistente = JSON.parse(rawData);
-		} catch (parseError) {
-			return res.status(500).json({
-				message: "El archivo de configuración no es un JSON válido",
-				error: parseError.message,
-			});
-		}
-
-		// Crear una copia de seguridad del archivo original
-		const backupPath = path.join(
-			__dirname,
-			"../config/globalConfig.backup.json",
-		);
-		await fs.writeFile(backupPath, rawData, "utf8");
-
-		// Actualizar solo los campos proporcionados
-		const nuevaConfiguracion = {
-			...configuracionExistente,
-			idioma,
-			zona_horaria,
-			formato_fecha,
-			formato_moneda,
-		};
-
-		// Escribir la nueva configuración en el archivo
-		await fs.writeFile(
-			filePath,
-			JSON.stringify(nuevaConfiguracion, null, 2),
-			"utf8",
+		await db.query(
+			"UPDATE configuracion SET idioma = ?, zona_horaria = ?, formato_fecha = ?, formato_moneda = ? WHERE id = 1",
+			[idioma, zona_horaria, formato_fecha, formato_moneda],
 		);
 
-		// Respuesta exitosa
 		res.json({
 			message: "Configuración global actualizada correctamente",
-			nuevaConfiguracion,
+			nuevaConfiguracion: { idioma, zona_horaria, formato_fecha, formato_moneda },
 		});
 	} catch (error) {
-		// Manejar errores específicos
-		if (error.code === "ENOENT") {
-			return res.status(404).json({
-				message: "El archivo de configuración no fue encontrado",
-				error: error.message,
-			});
-		}
-
-		// Error genérico
+		console.error("[ERROR UPDATE CONFIG]:", error.message);
 		res.status(500).json({
 			message: "Error al actualizar la configuración global",
 			error: error.message,
@@ -154,29 +71,24 @@ exports.getPerfilUsuario = async (req, res) => {
 	try {
 		const userId = req.user?.id;
 
-		// Validar que el ID del usuario esté presente
 		if (!userId) {
 			return res.status(400).json({ error: errorMessages.invalidUserId });
 		}
 
-		// Consulta para obtener los datos del perfil del usuario
 		const [usuarios] = await db.query(
 			"SELECT nombre, email, departamento, foto_url FROM usuarios WHERE id = ?",
 			[userId],
 		);
 
-		// Verificar si se encontró el usuario
 		const usuario = usuarios[0];
 		if (!usuario) {
 			return res.status(404).json({ error: errorMessages.userNotFound });
 		}
 
-		// Devolver los datos del perfil del usuario
 		res.json(usuario);
 	} catch (error) {
 		console.error("Error en getPerfilUsuario:", error);
 
-		// Manejar errores específicos
 		if (error.code === "ER_BAD_FIELD_ERROR") {
 			return res.status(500).json({
 				message: "Error en la consulta: campo inválido.",
@@ -184,7 +96,6 @@ exports.getPerfilUsuario = async (req, res) => {
 			});
 		}
 
-		// Error genérico
 		res.status(500).json({
 			message: errorMessages.databaseError,
 			error: error.message,
@@ -194,7 +105,7 @@ exports.getPerfilUsuario = async (req, res) => {
 
 exports.updatePerfilUsuario = async (req, res) => {
 	try {
-		const userId = req.user.id; // ID del usuario autenticado
+		const userId = req.user.id;
 		const {
 			nombre,
 			email,
@@ -206,14 +117,12 @@ exports.updatePerfilUsuario = async (req, res) => {
 		} = req.body;
 		console.log(req.body);
 
-		// Validar que la contraseña actual siempre esté presente
 		if (!contrasena_actual) {
 			return res.status(400).json({
 				error: "La contraseña actual es obligatoria para realizar cambios.",
 			});
 		}
 
-		// Verificar la contraseña actual
 		const [usuarios] = await db.query(
 			"SELECT contrasena FROM usuarios WHERE id = ?",
 			[userId],
@@ -222,7 +131,6 @@ exports.updatePerfilUsuario = async (req, res) => {
 			return res.status(404).json({ error: "Usuario no encontrado." });
 		}
 
-		// 3. Validar la contraseña actual usando el microservicio Argon2id
 		const isMatch = await hashService.verify(
 			contrasena_actual,
 			usuarios[0].contrasena,
@@ -233,21 +141,18 @@ exports.updatePerfilUsuario = async (req, res) => {
 				.json({ message: "La contraseña actual es incorrecta." });
 		}
 
-		// Validar que al menos un campo para actualizar esté presente
 		if (!nombre && !email && !departamento && !nueva_contrasena && !foto_url) {
 			return res.status(400).json({
 				error: "Debes proporcionar al menos un campo para actualizar.",
 			});
 		}
 
-		// Validar el formato del correo electrónico si se proporciona
 		if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			return res
 				.status(400)
 				.json({ error: "El correo electrónico no es válido." });
 		}
 
-		// Validar la nueva contraseña y su confirmación
 		if (nueva_contrasena || confirmar_nueva_contrasena) {
 			if (!nueva_contrasena || !confirmar_nueva_contrasena) {
 				return res.status(400).json({
@@ -263,7 +168,6 @@ exports.updatePerfilUsuario = async (req, res) => {
 			}
 		}
 
-		// Construir el objeto de actualización dinámicamente
 		const updates = [];
 		const values = [];
 
@@ -280,7 +184,6 @@ exports.updatePerfilUsuario = async (req, res) => {
 			values.push(departamento);
 		}
 		if (nueva_contrasena) {
-			// Hashear con el microservicio Argon2id
 			const hashedNewPassword = await hashService.hash(nueva_contrasena);
 			updates.push("contrasena = ?");
 			values.push(hashedNewPassword);
@@ -290,14 +193,12 @@ exports.updatePerfilUsuario = async (req, res) => {
 			values.push(foto_url);
 		}
 
-		// Verificar si hay algo que actualizar
 		if (updates.length === 0) {
 			return res.status(400).json({
 				error: "No se proporcionaron cambios válidos para actualizar.",
 			});
 		}
 
-		// Actualizar los datos del perfil
 		const query = `UPDATE usuarios SET ${updates.join(", ")} WHERE id = ?`;
 		values.push(userId);
 

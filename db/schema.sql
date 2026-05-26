@@ -213,6 +213,21 @@ CREATE TABLE `tiposreporte` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- -----------------------------------------------------
+-- Table `configuracion`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `configuracion`;
+CREATE TABLE `configuracion` (
+  `id` int NOT NULL DEFAULT 1,
+  `idioma` varchar(10) DEFAULT 'es',
+  `zona_horaria` varchar(20) DEFAULT 'UTC-5',
+  `formato_fecha` varchar(20) DEFAULT 'DD/MM/YYYY',
+  `formato_moneda` varchar(20) DEFAULT 'USD',
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
