@@ -43,6 +43,7 @@ exports.getGarantias = async (req, res) => {
 				page,
 				limit,
 				total,
+				totalPages: Math.ceil(total / limit),
 			},
 		});
 	} catch (error) {
