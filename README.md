@@ -63,7 +63,7 @@ Este es el proyecto encargado de la gestión de información para el sistema emp
 
 Este motor de datos se encuentra desplegado y administrado permanentemente a través de **Dokploy** en un servidor VPS.
 
-Puedes consultar la documentación interactiva de la API (Swagger) aquí: [Documentación API](https://gestor-activos-backend.fluxdv.icu/api/docs/)
+Puedes consultar la documentación interactiva de la API (Swagger) aquí: [Documentación API](https://nemi-backend.fluxdv.icu/api/docs/)
 
 ## Licencia
 
