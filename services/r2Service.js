@@ -4,16 +4,21 @@ const {
 	DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 
-const R2_ENDPOINT = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+let s3Client = null;
 
-const s3Client = new S3Client({
-	region: "auto",
-	endpoint: R2_ENDPOINT,
-	credentials: {
-		accessKeyId: process.env.R2_ACCESS_KEY_ID,
-		secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-	},
-});
+function getS3Client() {
+	if (!s3Client) {
+		s3Client = new S3Client({
+			region: "auto",
+			endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+			credentials: {
+				accessKeyId: process.env.R2_ACCESS_KEY_ID,
+				secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+			},
+		});
+	}
+	return s3Client;
+}
 
 async function uploadToR2(fileBuffer, key, contentType) {
 	const command = new PutObjectCommand({
@@ -22,7 +27,7 @@ async function uploadToR2(fileBuffer, key, contentType) {
 		Body: fileBuffer,
 		ContentType: contentType,
 	});
-	await s3Client.send(command);
+	await getS3Client().send(command);
 	return { url: `${process.env.R2_PUBLIC_URL}/${key}` };
 }
 
@@ -31,7 +36,7 @@ async function deleteFromR2(key) {
 		Bucket: process.env.R2_BUCKET_NAME,
 		Key: key,
 	});
-	await s3Client.send(command);
+	await getS3Client().send(command);
 }
 
 function generateKey(nombre, mimetype) {
