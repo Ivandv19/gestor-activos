@@ -597,7 +597,14 @@ exports.updateActivo = async (req, res) => {
 		}
 		// 1. VERIFICACIÓN INICIAL - Comprobar que el activo existe
 		const [activoExistente] = await db.query(
-			"SELECT * FROM activos WHERE id = ?",
+			`SELECT a.*, t.nombre AS tipo_nombre, p.nombre AS proveedor_nombre,
+					u.nombre AS ubicacion_nombre, us.nombre AS dueno_nombre
+			 FROM activos a
+			 LEFT JOIN tipos t ON a.tipo_id = t.id
+			 LEFT JOIN proveedores p ON a.proveedor_id = p.id
+			 LEFT JOIN ubicaciones u ON a.ubicacion_id = u.id
+			 LEFT JOIN usuarios us ON a.dueno_id = us.id
+			 WHERE a.id = ?`,
 			[id],
 		);
 		if (activoExistente.length === 0) {
@@ -690,24 +697,6 @@ exports.updateActivo = async (req, res) => {
 		}
 		// 3. PREPARACIÓN DE CAMBIOS PARA HISTORIAL
 
-		// Obtener nombres de relaciones existentes para el historial
-		const [tipoAnterior] = await db.query(
-			"SELECT nombre FROM tipos WHERE id = ?",
-			[activoExistente[0].tipo_id],
-		);
-		const [proveedorAnterior] = await db.query(
-			"SELECT nombre FROM proveedores WHERE id = ?",
-			[activoExistente[0].proveedor_id],
-		);
-		const [ubicacionAnterior] = await db.query(
-			"SELECT nombre FROM ubicaciones WHERE id = ?",
-			[activoExistente[0].ubicacion_id],
-		);
-		const [duenoAnterior] = await db.query(
-			"SELECT nombre FROM usuarios WHERE id = ?",
-			[activoExistente[0].dueno_id],
-		);
-
 		// 3. Preparar cambios para el historial
 		let comentariosDinamicos = "";
 		const cambios = {};
@@ -784,7 +773,7 @@ exports.updateActivo = async (req, res) => {
 			if (nuevoTipo.length > 0) {
 				comentariosDinamicos += registrarCambio(
 					"Tipo",
-					tipoAnterior[0]?.nombre || "Sin tipo",
+					activoExistente[0].tipo_nombre || "Sin tipo",
 					nuevoTipo[0].nombre,
 					true,
 				);
@@ -799,7 +788,7 @@ exports.updateActivo = async (req, res) => {
 			if (nuevoProveedor.length > 0) {
 				comentariosDinamicos += registrarCambio(
 					"Proveedor",
-					proveedorAnterior[0]?.nombre || "Sin proveedor",
+					activoExistente[0].proveedor_nombre || "Sin proveedor",
 					nuevoProveedor[0].nombre,
 					true,
 				);
@@ -814,7 +803,7 @@ exports.updateActivo = async (req, res) => {
 			if (nuevaUbicacion.length > 0) {
 				comentariosDinamicos += registrarCambio(
 					"Ubicación",
-					ubicacionAnterior[0]?.nombre || "Sin ubicación",
+					activoExistente[0].ubicacion_nombre || "Sin ubicación",
 					nuevaUbicacion[0].nombre,
 					true,
 				);
@@ -829,7 +818,7 @@ exports.updateActivo = async (req, res) => {
 			if (nuevoDueno.length > 0) {
 				comentariosDinamicos += registrarCambio(
 					"Dueño/Responsable",
-					duenoAnterior[0]?.nombre || "Sin dueño",
+					activoExistente[0].dueno_nombre || "Sin dueño",
 					nuevoDueno[0].nombre,
 					true,
 				);

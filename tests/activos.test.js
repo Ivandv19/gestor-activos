@@ -192,10 +192,6 @@ describe("Activos Endpoints", () => {
 			};
 
 			db.query.mockResolvedValueOnce([[mockActivoExistente], []]);
-			db.query.mockResolvedValueOnce([[{ nombre: "Tipo 1" }], []]);
-			db.query.mockResolvedValueOnce([[{ nombre: "Proveedor 1" }], []]);
-			db.query.mockResolvedValueOnce([[{ nombre: "Ubicacion 1" }], []]);
-			db.query.mockResolvedValueOnce([[{ nombre: "Dueno 1" }], []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([[], []]);
@@ -243,11 +239,7 @@ describe("Activos Endpoints", () => {
 			};
 
 			db.query
-				.mockResolvedValueOnce([[mockActivoExistente], []])
-				.mockResolvedValueOnce([[{ nombre: "Tipo 1" }], []])
-				.mockResolvedValueOnce([[{ nombre: "Proveedor 1" }], []])
-				.mockResolvedValueOnce([[{ nombre: "Ubicacion 1" }], []])
-				.mockResolvedValueOnce([[{ nombre: "Dueno 1" }], []]);
+				.mockResolvedValueOnce([[mockActivoExistente], []]);
 
 			const res = await request(app)
 				.put("/api/gestion-activos/activos/1")
