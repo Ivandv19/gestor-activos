@@ -1130,49 +1130,20 @@ exports.obtenerDatosAuxiliares = async (_req, res) => {
 
 		// Consulta para obtener los tipos de activos
 		const [tipos] = await db.query("SELECT id, nombre FROM tipos");
-		if (!tipos || tipos.length === 0) {
-			return res.status(404).json({
-				error: "No se encontraron tipos de activos",
-				errorCode: "DATA_001",
-			});
-		}
 
 		// Consulta para obtener los proveedores
 		const [proveedores] = await db.query("SELECT id, nombre FROM proveedores");
-		if (!proveedores || proveedores.length === 0) {
-			return res.status(404).json({
-				error: "No se encontraron proveedores",
-				errorCode: "DATA_002",
-			});
-		}
 
 		// Consulta para obtener las ubicaciones
 		const [ubicaciones] = await db.query("SELECT id, nombre FROM ubicaciones");
-		if (!ubicaciones || ubicaciones.length === 0) {
-			return res.status(404).json({
-				error: "No se encontraron ubicaciones",
-				errorCode: "DATA_003",
-			});
-		}
 
 		// Consulta para obtener los proveedores de garantía
 		const [proveedoresGarantia] = await db.query(
 			"SELECT id, nombre FROM proveedoresgarantia",
 		);
-		if (!proveedoresGarantia || proveedoresGarantia.length === 0) {
-			return res.status(404).json({
-				error: "No se encontraron proveedores de garantía",
-				errorCode: "DATA_004",
-			});
-		}
 
 		// Consulta para obtener los dueños (usuarios)
 		const [duenos] = await db.query("SELECT id, nombre FROM usuarios");
-		if (!duenos || duenos.length === 0) {
-			return res
-				.status(404)
-				.json({ error: "No se encontraron usuarios", errorCode: "DATA_005" });
-		}
 
 		// Devuelve los datos en un objeto JSON
 		res.status(200).json({

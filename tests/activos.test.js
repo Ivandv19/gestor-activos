@@ -338,6 +338,26 @@ describe("Activos Endpoints", () => {
 			expect(res.body.estados).toHaveLength(4);
 		});
 
+		it("should return 200 with empty arrays when tables are empty", async () => {
+			db.query.mockResolvedValueOnce([[], []]);
+			db.query.mockResolvedValueOnce([[], []]);
+			db.query.mockResolvedValueOnce([[], []]);
+			db.query.mockResolvedValueOnce([[], []]);
+			db.query.mockResolvedValueOnce([[], []]);
+
+			const res = await request(app).get(
+				"/api/gestion-activos/datos-auxiliares",
+			);
+
+			expect(res.statusCode).toEqual(200);
+			expect(res.body.tipos).toEqual([]);
+			expect(res.body.proveedores).toEqual([]);
+			expect(res.body.ubicaciones).toEqual([]);
+			expect(res.body.proveedoresGarantia).toEqual([]);
+			expect(res.body.duenos).toEqual([]);
+			expect(res.body.estados).toHaveLength(4);
+		});
+
 		it("should return 500 on DB error", async () => {
 			db.query.mockRejectedValueOnce(new Error("DB error"));
 
