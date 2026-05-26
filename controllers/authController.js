@@ -6,52 +6,9 @@ exports.registro = async (req, res) => {
 	console.log("[AUTH] Inicio - Registro de usuario");
 
 	const { nombre, email, contrasena, departamento, fecha_ingreso, rol } =
-		req.body;
+		req.validated;
 
 	try {
-		// 1. Validación de campos obligatorios
-		console.log("[AUTH] Validando campos obligatorios");
-		if (
-			!nombre ||
-			!email ||
-			!contrasena ||
-			!departamento ||
-			!fecha_ingreso ||
-			!rol
-		) {
-			console.log("[AUTH] Error: Campos obligatorios faltantes");
-			return res
-				.status(400)
-				.json({ error: "Todos los campos son obligatorios" });
-		}
-
-		// 2. Validación de formato de correo electrónico
-		console.log("[AUTH] Validando formato de email");
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) {
-			console.log("[AUTH] Error: Formato de email inválido");
-			return res
-				.status(400)
-				.json({ error: "El correo electrónico no es válido" });
-		}
-
-		// 3. Validación de longitud de contraseña
-		console.log("[AUTH] Validando longitud de contraseña");
-		if (contrasena.length < 8) {
-			console.log("[AUTH] Error: Contraseña demasiado corta");
-			return res
-				.status(400)
-				.json({ error: "La contraseña debe tener al menos 8 caracteres" });
-		}
-
-		// 4. Validación de roles predefinidos
-		console.log("[AUTH] Validando rol de usuario");
-		const rolesPermitidos = ["Administrador", "Usuario"];
-		if (!rolesPermitidos.includes(rol)) {
-			console.log("[AUTH] Error: Rol no válido");
-			return res.status(400).json({ error: "Rol no válido" });
-		}
-
 		// Verificar si el usuario ya existe
 		console.log("[AUTH] Verificando usuario existente en BD");
 		const [existingUser] = await db.query(
@@ -80,6 +37,11 @@ exports.registro = async (req, res) => {
 		res.status(201).json({ message: "Usuario registrado exitosamente" });
 	} catch (error) {
 		console.error("[ERROR AUTH]:", error.message);
+		if (error.message.includes("Hash Service")) {
+			return res.status(503).json({
+				error: "El servicio de autenticación no está disponible.",
+			});
+		}
 		res.status(500).json({ error: "Error al registrar el usuario" });
 	}
 };
@@ -96,28 +58,10 @@ exports.login = async (req, res) => {
 
 	console.log("[AUTH] Inicio - Login de usuario");
 
-	const { email, contrasena } = req.body;
+	const { email, contrasena } = req.validated;
 
 	try {
-		// 1. Validación de campos obligatorios
-		if (!email || !contrasena) {
-			console.log("[AUTH] Error: Faltan credenciales");
-			return res.status(400).json({
-				error: "Todos los campos son obligatorios",
-			});
-		}
-
-		// 2. Validación de formato de email
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) {
-			console.log("[AUTH] Error: Formato de email inválido");
-			return res.status(400).json({
-				error: "Ingrese un correo electrónico válido",
-
-			});
-		}
-
-		// 3. Buscar usuario
+		// 1. Buscar usuario
 		const [users] = await db.query(
 			"SELECT id, nombre, email, contrasena, rol, foto_url FROM usuarios WHERE email = ?",
 			[email],

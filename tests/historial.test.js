@@ -22,6 +22,8 @@ const authenticate = (req, _res, next) => {
 
 // Import controller directly
 const historialController = require("../controllers/historialController");
+const validate = require("../middleware/validate");
+const { registrarAccionSchema } = require("../schemas/historial");
 
 // Define routes inline
 app.get(
@@ -37,6 +39,7 @@ app.get(
 app.post(
 	"/api/historial/:id",
 	authenticate,
+	validate(registrarAccionSchema),
 	historialController.registrarAccionHistorial,
 );
 
@@ -252,31 +255,23 @@ describe("Historial Endpoints", () => {
 		});
 
 		it("should return 400 if accion is missing", async () => {
-			const mockActivo = [{ id: 1 }];
-
-			db.query.mockResolvedValueOnce([mockActivo, []]);
-
 			const res = await request(app)
 				.post("/api/historial/1")
 				.send({ detalles: "Sin acción" });
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty("error");
-			expect(res.body.error).toContain("El campo");
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should return 400 if accion is empty string", async () => {
-			const mockActivo = [{ id: 1 }];
-
-			db.query.mockResolvedValueOnce([mockActivo, []]);
-
 			const res = await request(app)
 				.post("/api/historial/1")
 				.send({ accion: "", detalles: "Empty action" });
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty("error");
-			expect(res.body.error).toContain("El campo");
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should use current date if fecha not provided", async () => {
@@ -299,9 +294,7 @@ describe("Historial Endpoints", () => {
 		});
 
 		it("should return 500 on database error", async () => {
-			db.query
-				.mockResolvedValueOnce([[{ id: 1 }], []])
-				.mockRejectedValueOnce(new Error("DB connection failed"));
+			db.query.mockRejectedValueOnce(new Error("DB connection failed"));
 
 			const res = await request(app)
 				.post("/api/historial/1")

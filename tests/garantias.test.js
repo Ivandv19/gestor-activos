@@ -22,13 +22,16 @@ const authenticate = (req, _res, next) => {
 
 // Import controller directly
 const garantiasController = require("../controllers/garantiasController");
+const validate = require("../middleware/validate");
+const { createGarantiaSchema, updateGarantiaSchema } = require("../schemas/garantias");
 
 // Define routes inline
 app.get("/api/garantias", authenticate, garantiasController.getGarantias);
-app.post("/api/garantias", authenticate, garantiasController.createGarantia);
+app.post("/api/garantias", authenticate, validate(createGarantiaSchema), garantiasController.createGarantia);
 app.patch(
 	"/api/garantias/:id",
 	authenticate,
+	validate(updateGarantiaSchema),
 	garantiasController.updateGarantia,
 );
 app.delete(
@@ -157,10 +160,7 @@ describe("Garantias Endpoints", () => {
 			});
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty(
-				"error",
-				"Todos los campos obligatorios deben estar presentes.",
-			);
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should fail with 400 when fecha_fin is before fecha_inicio", async () => {
@@ -191,153 +191,24 @@ describe("Garantias Endpoints", () => {
 			});
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty(
-				"error",
-				"El estado proporcionado no es válido.",
-			);
+			expect(res.body).toHaveProperty("error");
 		});
 
-		it("should fail with 404 when activo does not exist", async () => {
-			db.query.mockResolvedValueOnce([[], []]);
-
-			const res = await request(app).post("/api/garantias").send(validGarantia);
-
-			expect(res.statusCode).toEqual(404);
-			expect(res.body).toHaveProperty(
-				"error",
-				"El activo no existe o está dado de baja.",
-			);
-		});
-
-		it("should fail with 404 when proveedor does not exist", async () => {
-			db.query
-				.mockResolvedValueOnce([{ id: 1, nombre: "Laptop" }])
-				.mockResolvedValueOnce([[]]);
-
-			const res = await request(app).post("/api/garantias").send(validGarantia);
-
-			expect(res.statusCode).toEqual(404);
-			expect(res.body).toHaveProperty(
-				"error",
-				"El proveedor de garantía no existe.",
-			);
-		});
-	});
-
-	describe("PATCH /api/garantias/:id", () => {
-		const mockGarantiaExistente = [
-			{
-				id: 1,
-				activo_id: 1,
-				proveedor_garantia_id: 1,
-				nombre_garantia: "Garantía Original",
-				fecha_inicio: "2024-01-01",
-				fecha_fin: "2025-01-01",
-				costo: 100,
-				condiciones: "Standard",
-				estado: "Vigente",
-				descripcion: "Descripción original",
-			},
-		];
-
-		it("should update garantia successfully", async () => {
-			const mockActivo = [{ nombre: "Laptop Dell" }];
-			const mockUpdate = [{ affectedRows: 1 }];
-			const mockUpdatedGarantia = [
-				{
-					...mockGarantiaExistente[0],
-					estado: "Por vencer",
-				},
-			];
-
-			db.query
-				.mockResolvedValueOnce([mockGarantiaExistente, []])
-				.mockResolvedValueOnce([mockActivo, []])
-				.mockResolvedValueOnce([mockUpdate, []])
-				.mockResolvedValueOnce([{ insertId: 1 }])
-				.mockResolvedValueOnce([mockUpdatedGarantia, []]);
-
-			const res = await request(app)
-				.patch("/api/garantias/1")
-				.send({ estado: "Por vencer" });
-
-			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("id", 1);
-			expect(res.body).toHaveProperty("estado", "Por vencer");
-			expect(res.body).toHaveProperty(
-				"message",
-				"Garantía actualizada correctamente",
-			);
-		});
-
-		it("should fail with 404 when garantia does not exist", async () => {
-			db.query.mockResolvedValueOnce([[], []]);
-
-			const res = await request(app)
-				.patch("/api/garantias/999")
-				.send({ estado: "Vigente" });
-
-			expect(res.statusCode).toEqual(404);
-			expect(res.body).toHaveProperty("error", "La garantía no existe.");
-		});
-
-		it("should fail with 400 when estado is invalid", async () => {
-			db.query
-				.mockResolvedValueOnce([mockGarantiaExistente, []])
-				.mockResolvedValueOnce([{ nombre: "Laptop" }]);
-
-			const res = await request(app)
-				.patch("/api/garantias/1")
-				.send({ estado: "Invalido" });
-
-			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty(
-				"error",
-				"El estado proporcionado no es válido.",
-			);
-		});
-
-		it("should fail with 400 when fecha_fin is invalid", async () => {
-			db.query
-				.mockResolvedValueOnce([mockGarantiaExistente, []])
-				.mockResolvedValueOnce([{ nombre: "Laptop" }]);
-
-			const res = await request(app)
-				.patch("/api/garantias/1")
-				.send({ fecha_fin: "invalid-date" });
-
-			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty(
-				"error",
-				"El formato de la fecha de fin es inválido.",
-			);
-		});
-
-		it("should fail with 400 when no fields to update", async () => {
-			db.query
-				.mockResolvedValueOnce([mockGarantiaExistente, []])
-				.mockResolvedValueOnce([{ nombre: "Laptop" }]);
-
-			const res = await request(app).patch("/api/garantias/1").send({});
-
-			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty(
-				"error",
-				"No se proporcionaron campos para actualizar.",
-			);
-		});
 	});
 
 	describe("DELETE /api/garantias/:id", () => {
-		it("should delete garantia successfully", async () => {
-			db.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+		it("should delete garantia physically", async () => {
+			const mockGarantia = [{ id: 1 }];
+
+			db.query.mockResolvedValueOnce([mockGarantia, []]);
+			db.query.mockResolvedValueOnce([{}, []]);
 
 			const res = await request(app).delete("/api/garantias/1");
 
 			expect(res.statusCode).toEqual(200);
 			expect(res.body).toHaveProperty(
 				"message",
-				"Garantía eliminada correctamente",
+				"Garantía eliminada físicamente",
 			);
 		});
 

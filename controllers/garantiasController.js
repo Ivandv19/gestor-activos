@@ -80,46 +80,15 @@ exports.createGarantia = async (req, res) => {
 			condiciones,
 			estado,
 			descripcion,
-		} = req.body;
+		} = req.validated;
 
-		// Validación inicial: Asegurarse de que todos los campos requeridos estén presentes
-		if (
-			!activo_id ||
-			!proveedor_garantia_id ||
-			!nombre_garantia ||
-			!fecha_inicio ||
-			!fecha_fin ||
-			!estado
-		) {
-			return res.status(400).json({
-				error: "Todos los campos obligatorios deben estar presentes.",
-			});
-		}
-
-		// Validaciones adicionales (fechas, estado, etc.)
 		const fechaInicioValida = new Date(fecha_inicio);
 		const fechaFinValida = new Date(fecha_fin);
-
-		if (
-			Number.isNaN(fechaInicioValida.getTime()) ||
-			Number.isNaN(fechaFinValida.getTime())
-		) {
-			return res
-				.status(400)
-				.json({ error: "El formato de las fechas es inválido." });
-		}
 
 		if (fechaFinValida <= fechaInicioValida) {
 			return res.status(400).json({
 				error: "La fecha de fin debe ser posterior a la fecha de inicio.",
 			});
-		}
-
-		const estadosPermitidos = ["Vigente", "Por vencer", "Vencida"];
-		if (!estadosPermitidos.includes(estado)) {
-			return res
-				.status(400)
-				.json({ error: "El estado proporcionado no es válido." });
 		}
 
 		// Verificar que el activo exista y esté activo
@@ -240,7 +209,7 @@ exports.updateGarantia = async (req, res) => {
 			proveedor_garantia_id,
 			costo,
 			condiciones,
-		} = req.body;
+		} = req.validated;
 
 		// Validar que la garantía exista
 		const [garantiaExistente] = await db.query(
@@ -382,11 +351,19 @@ exports.deleteGarantia = async (req, res) => {
 		console.log("[GARANTIAS] Inicio - Eliminar garantía");
 
 		const { id } = req.params;
-		await db.query("UPDATE garantias SET activo = 0 WHERE id = ?", [id]);
 
-		console.log("[GARANTIAS] Éxito - Garantía eliminada correctamente");
+		const [garantia] = await db.query(
+			"SELECT id FROM garantias WHERE id = ?",
+			[id],
+		);
+		if (garantia.length === 0) {
+			return res.status(404).json({ error: "La garantía no existe." });
+		}
 
-		res.json({ message: "Garantía eliminada correctamente" });
+		await db.query("DELETE FROM garantias WHERE id = ?", [id]);
+
+		console.log("[GARANTIAS] Éxito - Garantía eliminada físicamente");
+		res.json({ message: "Garantía eliminada físicamente" });
 	} catch (error) {
 		console.error("[ERROR GARANTIAS]:", error.message);
 		res.status(500).json({ error: "Error al eliminar la garantía." });

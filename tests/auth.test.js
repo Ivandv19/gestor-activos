@@ -24,10 +24,12 @@ app.use(express.json());
 
 // Import controller directly
 const authController = require("../controllers/authController");
+const validate = require("../middleware/validate");
+const { loginSchema, registroSchema } = require("../schemas/auth");
 
 // Define routes inline
-app.post("/api/auth/registro", authController.registro);
-app.post("/api/auth/login", authController.login);
+app.post("/api/auth/registro", validate(registroSchema), authController.registro);
+app.post("/api/auth/login", validate(loginSchema), authController.login);
 
 describe("Auth Endpoints", () => {
 	beforeEach(() => {
@@ -145,7 +147,7 @@ describe("Auth Endpoints", () => {
 				.send({ nombre: "Juan", email: "juan@example.com" });
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body.error).toBe("Todos los campos son obligatorios");
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should fail with 400 if email already exists", async () => {

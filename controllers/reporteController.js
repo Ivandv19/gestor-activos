@@ -57,15 +57,8 @@ exports.getDatosAuxiliares = async (_req, res) => {
 exports.generarReporte = async (req, res) => {
 	try {
 		console.log("[REPORTES] Inicio - generarReporte");
-		const { tipo_id, filtros } = req.body;
+		const { tipo_id, filtros = {} } = req.validated;
 		console.log("[REPORTES]", tipo_id, filtros);
-
-		// Validar que se haya proporcionado un tipo de reporte
-		if (!tipo_id) {
-			return res
-				.status(400)
-				.json({ error: "El campo 'tipo_id' es obligatorio." });
-		}
 		// Consultar el tipo de reporte en la tabla TiposReporte
 		const [tipoReporteRows] = await db.query(
 			"SELECT id, nombre, descripcion FROM tiposreporte WHERE id = ? AND activo = TRUE",

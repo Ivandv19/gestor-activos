@@ -33,6 +33,8 @@ const checkRole = (_role) => (_req, _res, next) => {
 };
 
 const configuracionController = require("../controllers/configuracionController");
+const validate = require("../middleware/validate");
+const { updateConfigSchema, updatePerfilSchema } = require("../schemas/configuracion");
 
 app.get(
 	"/api/configuracion/aplicacion",
@@ -43,6 +45,7 @@ app.put(
 	"/api/configuracion/aplicacion",
 	authenticate,
 	checkRole("Administrador"),
+	validate(updateConfigSchema),
 	configuracionController.updateConfiguracionAplicacion,
 );
 app.get(
@@ -53,6 +56,7 @@ app.get(
 app.put(
 	"/api/configuracion/perfil",
 	authenticate,
+	validate(updatePerfilSchema),
 	configuracionController.updatePerfilUsuario,
 );
 
@@ -322,14 +326,10 @@ describe("Configuración Endpoints", () => {
 		});
 
 		it("should return 400 when email is invalid", async () => {
-			const mockUser = { contrasena: "hashed_password" };
 			const updateData = {
 				email: "invalid-email",
 				contrasena_actual: "password123",
 			};
-
-			db.query.mockResolvedValueOnce([[mockUser], []]);
-			hashService.verify.mockResolvedValueOnce(true);
 
 			const res = await request(app)
 				.put("/api/configuracion/perfil")

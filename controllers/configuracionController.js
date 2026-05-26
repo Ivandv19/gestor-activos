@@ -26,24 +26,8 @@ exports.getConfiguracionAplicacion = async (_req, res) => {
 exports.updateConfiguracionAplicacion = async (req, res) => {
 	try {
 		console.log("[CONFIG] Inicio - actualizar configuración de la aplicación");
-		const { idioma, zona_horaria, formato_fecha, formato_moneda } = req.body;
-
-		if (!idioma || !zona_horaria || !formato_fecha || !formato_moneda) {
-			return res
-				.status(400)
-				.json({ error: "Todos los campos son obligatorios." });
-		}
-
-		const validLanguages = ["es", "en", "fr"];
-		const validTimeZones = ["UTC-5", "UTC+1", "UTC+2"];
-
-		if (!validLanguages.includes(idioma)) {
-			return res.status(400).json({ error: "Idioma no válido." });
-		}
-
-		if (!validTimeZones.includes(zona_horaria)) {
-			return res.status(400).json({ error: "Zona horaria no válida." });
-		}
+		const { idioma, zona_horaria, formato_fecha, formato_moneda } =
+			req.validated;
 
 		await db.query(
 			"UPDATE configuracion SET idioma = ?, zona_horaria = ?, formato_fecha = ?, formato_moneda = ? WHERE id = 1",
@@ -122,14 +106,8 @@ exports.updatePerfilUsuario = async (req, res) => {
 			nueva_contrasena,
 			confirmar_nueva_contrasena,
 			foto_url,
-		} = req.body;
+		} = req.validated;
 		console.log(req.body);
-
-		if (!contrasena_actual) {
-			return res.status(400).json({
-				error: "La contraseña actual es obligatoria para realizar cambios.",
-			});
-		}
 
 		const [usuarios] = await db.query(
 			"SELECT contrasena FROM usuarios WHERE id = ?",
@@ -153,12 +131,6 @@ exports.updatePerfilUsuario = async (req, res) => {
 			return res.status(400).json({
 				error: "Debes proporcionar al menos un campo para actualizar.",
 			});
-		}
-
-		if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-			return res
-				.status(400)
-				.json({ error: "El correo electrónico no es válido." });
 		}
 
 		if (nueva_contrasena || confirmar_nueva_contrasena) {

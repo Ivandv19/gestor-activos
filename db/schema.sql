@@ -179,7 +179,7 @@ CREATE TABLE `garantias` (
 DROP TABLE IF EXISTS `historial`;
 CREATE TABLE `historial` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `activo_id` int NOT NULL,
+  `activo_id` int DEFAULT NULL,
   `accion` varchar(255) NOT NULL,
   `fecha` datetime DEFAULT CURRENT_TIMESTAMP,
   `usuario_responsable` int NOT NULL,
@@ -195,7 +195,7 @@ CREATE TABLE `historial` (
   KEY `idx_activo_id_fecha` (`activo_id`, `fecha`),
   CONSTRAINT `fk_ubicacion_nueva` FOREIGN KEY (`ubicacion_nueva`) REFERENCES `ubicaciones` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_usuario_asignado` FOREIGN KEY (`usuario_asignado`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `historial_ibfk_1` FOREIGN KEY (`activo_id`) REFERENCES `activos` (`id`),
+  CONSTRAINT `historial_ibfk_1` FOREIGN KEY (`activo_id`) REFERENCES `activos` (`id`) ON DELETE SET NULL,
   CONSTRAINT `historial_ibfk_2` FOREIGN KEY (`usuario_responsable`) REFERENCES `usuarios` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

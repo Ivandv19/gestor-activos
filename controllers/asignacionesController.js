@@ -114,22 +114,7 @@ exports.createAsignacion = async (req, res) => {
 			ubicacion_id,
 			fecha_asignacion,
 			fecha_devolucion,
-		} = req.body;
-
-		// Validación inicial: Asegurarse de que todos los campos requeridos estén presentes
-		if (!activo_id || !usuario_id || !ubicacion_id || !fecha_asignacion) {
-			return res
-				.status(400)
-				.json({ error: "Todos los campos son obligatorios." });
-		}
-
-		// Validar formato de fecha_asignacion
-		const fechaValida = new Date(fecha_asignacion);
-		if (Number.isNaN(fechaValida.getTime())) {
-			return res
-				.status(400)
-				.json({ error: "El formato de la fecha de asignación es inválido." });
-		}
+		} = req.validated;
 
 		// Validaciones combinadas para activo, usuario y ubicación
 		const [validaciones] = await db.query(
@@ -316,7 +301,7 @@ exports.updateAsignacion = async (req, res) => {
 		console.log("[ASIGNACIONES] Inicio - actualizar asignación");
 
 		const { id } = req.params;
-		const { fecha_devolucion, usuario_id, ubicacion_id } = req.body;
+		const { fecha_devolucion, usuario_id, ubicacion_id } = req.validated;
 
 		// Obtener la asignación existente
 		const [asignacionExistente] = await db.query(

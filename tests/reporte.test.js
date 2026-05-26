@@ -27,6 +27,8 @@ const checkRole = (_role) => (_req, _res, next) => {
 
 // Import controller directly
 const reporteController = require("../controllers/reporteController");
+const validate = require("../middleware/validate");
+const { generarReporteSchema } = require("../schemas/reporte");
 
 // Define routes inline
 app.get(
@@ -45,6 +47,7 @@ app.post(
 	"/api/reportes/generar",
 	authenticate,
 	checkRole("Administrador"),
+	validate(generarReporteSchema),
 	reporteController.generarReporte,
 );
 
@@ -190,10 +193,7 @@ describe("Reporte Endpoints", () => {
 				.send({ filtros: {} });
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty(
-				"error",
-				"El campo 'tipo_id' es obligatorio.",
-			);
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should return 400 when tipo_id is invalid", async () => {

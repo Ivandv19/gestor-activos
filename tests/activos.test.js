@@ -28,6 +28,12 @@ app.use(express.json());
 
 // Import controller directly
 const activosController = require("../controllers/activosController");
+const validate = require("../middleware/validate");
+const {
+	createActivoSchema,
+	updateActivoSchema,
+	validarEtiquetaSchema,
+} = require("../schemas/activos");
 
 // Define routes inline
 app.get(
@@ -47,6 +53,7 @@ app.post(
 	authenticate,
 	checkRole("Administrador"),
 	imageUploadMiddleware,
+	validate(createActivoSchema),
 	activosController.createActivo,
 );
 app.patch(
@@ -60,6 +67,7 @@ app.put(
 	authenticate,
 	checkRole("Administrador"),
 	imageUploadMiddleware,
+	validate(updateActivoSchema),
 	activosController.updateActivo,
 );
 app.delete(
@@ -77,6 +85,7 @@ app.post(
 	"/api/gestion-activos/validar-etiqueta-serial",
 	authenticate,
 	checkRole("Administrador"),
+	validate(validarEtiquetaSchema),
 	activosController.validarEtiquetaSerial,
 );
 
@@ -268,10 +277,11 @@ describe("Activos Endpoints", () => {
 	});
 
 	describe("DELETE /api/gestion-activos/activos/:id", () => {
-		it("should delete activo successfully", async () => {
+		it("should delete activo physically", async () => {
 			const mockActivo = { id: 1, nombre: "PC to delete", foto_url: null };
 
 			db.query.mockResolvedValueOnce([[mockActivo], []]);
+			db.query.mockResolvedValueOnce([[], []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
 			db.query.mockResolvedValueOnce([{}, []]);
@@ -280,7 +290,20 @@ describe("Activos Endpoints", () => {
 			const res = await request(app).delete("/api/gestion-activos/activos/1");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.message).toBe("Activo eliminado exitosamente");
+			expect(res.body.message).toContain("eliminado físicamente");
+		});
+
+		it("should return 400 if activo has active assignments", async () => {
+			const mockActivo = { id: 1, nombre: "PC", foto_url: null };
+			const mockAsignacion = [{ id: 1 }];
+
+			db.query.mockResolvedValueOnce([[mockActivo], []]);
+			db.query.mockResolvedValueOnce([mockAsignacion, []]);
+
+			const res = await request(app).delete("/api/gestion-activos/activos/1");
+
+			expect(res.statusCode).toEqual(400);
+			expect(res.body.error).toContain("No se puede eliminar");
 		});
 
 		it("should return 404 if activo not found", async () => {

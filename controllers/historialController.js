@@ -140,7 +140,7 @@ exports.getDatosAuxiliares = async (_req, res) => {
 exports.registrarAccionHistorial = async (req, res) => {
 	const { id } = req.params;
 	const { accion, detalles, fecha, usuario_asignado, ubicacion_nueva } =
-		req.body;
+		req.validated;
 	const usuario_responsable = req.user.id;
 
 	console.log("[HISTORIAL] Inicio - registrarAccionHistorial");
@@ -154,13 +154,6 @@ exports.registrarAccionHistorial = async (req, res) => {
 			return res
 				.status(404)
 				.json({ error: `No se encontró ningún activo con el ID ${id}.` });
-		}
-
-		// Validar que se proporcionen los campos obligatorios
-		if (!accion || accion.trim() === "") {
-			return res.status(400).json({
-				error: 'El campo "accion" es obligatorio y no puede estar vacío.',
-			});
 		}
 
 		// Formatear la fecha para MySQL

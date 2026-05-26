@@ -277,7 +277,6 @@ exports.getActivoById = async (req, res) => {
 };
 
 exports.createActivo = async (req, res) => {
-	// Extracción de todos los campos posibles del body
 	const {
 		nombre,
 		tipo_id,
@@ -296,8 +295,6 @@ exports.createActivo = async (req, res) => {
 		etiqueta_serial,
 		condicion_fisica,
 		descripcion,
-
-		// Campos específicos para garantía (todos opcionales)
 		nombre_garantia,
 		proveedor_garantia_id,
 		fecha_inicio,
@@ -306,7 +303,7 @@ exports.createActivo = async (req, res) => {
 		condiciones,
 		estado_garantia,
 		descripcion_garantia,
-	} = req.body;
+	} = req.validated;
 
 	let foto_url = null;
 
@@ -330,44 +327,6 @@ exports.createActivo = async (req, res) => {
 			foto_url = result.url;
 			console.log("[ACTIVOS] Imagen subida a R2:", foto_url);
 		}
-		// Validación de campos obligatorios para el activo
-		if (
-			!nombre ||
-			!tipo_id ||
-			!fecha_adquisicion ||
-			!valor_compra ||
-			!estado ||
-			!proveedor_id
-		) {
-			return res
-				.status(400)
-				.json({ error: "Faltan datos obligatorios del activo" });
-		}
-
-		// Validación numérica para el valor de compra
-		if (Number.isNaN(valor_compra) || parseFloat(valor_compra) <= 0) {
-			return res
-				.status(400)
-				.json({ error: "El valor de compra debe ser un número positivo" });
-		}
-
-		// Validación de formato de fecha para adquisición
-		if (Number.isNaN(Date.parse(fecha_adquisicion))) {
-			return res
-				.status(400)
-				.json({ error: "La fecha de adquisición no es válida" });
-		}
-
-		// Validación opcional para costo mensual
-		if (
-			costo_mensual &&
-			(Number.isNaN(costo_mensual) || parseFloat(costo_mensual) < 0)
-		) {
-			return res
-				.status(400)
-				.json({ error: "El costo mensual debe ser un número positivo o cero" });
-		}
-
 		// Validación de unicidad para etiqueta serial (si se proporciona)
 		if (etiqueta_serial) {
 			const [existingSerial] = await db.query(
@@ -379,23 +338,6 @@ exports.createActivo = async (req, res) => {
 					.status(400)
 					.json({ error: "La etiqueta serial ya está registrada" });
 			}
-		}
-
-		// Validación de valores permitidos para condición física
-		if (
-			condicion_fisica &&
-			!["Nuevo", "Usado", "Dañado"].includes(condicion_fisica)
-		) {
-			return res.status(400).json({
-				error: 'La condición física debe ser "Nuevo", "Usado" o "Dañado"',
-			});
-		}
-
-		// Validación de longitud máxima para descripción (opcional)
-		if (descripcion && descripcion.length > 500) {
-			return res
-				.status(400)
-				.json({ error: "La descripción no puede exceder los 500 caracteres" });
 		}
 
 		// Validaciones para garantía (solo si se proporciona algún campo)
@@ -585,7 +527,7 @@ exports.updateActivo = async (req, res) => {
 		descripcion_garantia,
 		costo,
 		condiciones,
-	} = req.body;
+	} = req.validated;
 
 	try {
 		console.log("[ACTIVOS] Inicio - Actualizando activo ID:", id);
@@ -618,47 +560,6 @@ exports.updateActivo = async (req, res) => {
 
 		// 2. VALIDACIONES DE DATOS
 
-		// Validaciones numéricas para campos monetarios
-
-		if (
-			valor_compra &&
-			(Number.isNaN(valor_compra) || parseFloat(valor_compra) <= 0)
-		) {
-			return res
-				.status(400)
-				.json({ error: "El valor de compra debe ser un número positivo" });
-		}
-
-		if (
-			costo_mensual &&
-			(Number.isNaN(costo_mensual) || parseFloat(costo_mensual) < 0)
-		) {
-			return res
-				.status(400)
-				.json({ error: "El costo mensual debe ser un número positivo o cero" });
-		}
-
-		if (costo && (Number.isNaN(costo) || parseFloat(costo) < 0)) {
-			return res.status(400).json({
-				error: "El costo de la garantía debe ser un número positivo o cero",
-			});
-		}
-		// Validaciones de formato de fecha
-		if (fecha_adquisicion && Number.isNaN(Date.parse(fecha_adquisicion))) {
-			return res
-				.status(400)
-				.json({ error: "La fecha de adquisición no es válida" });
-		}
-
-		if (fecha_registro && Number.isNaN(Date.parse(fecha_registro))) {
-			return res
-				.status(400)
-				.json({ error: "La fecha de registro no es válida" });
-		}
-
-		if (fecha_salida && Number.isNaN(Date.parse(fecha_salida))) {
-			return res.status(400).json({ error: "La fecha de salida no es válida" });
-		}
 		// Validación de unicidad para etiqueta serial
 		if (etiqueta_serial) {
 			const [existingSerial] = await db.query(
@@ -1083,18 +984,21 @@ exports.deleteActivo = async (req, res) => {
 
 		const { nombre, foto_url } = activo[0];
 
-		await db.query("START TRANSACTION");
-
-		await db.query(
-			'UPDATE activos SET activo = 0, estado = "Dado de baja", fecha_salida = CURRENT_DATE WHERE id = ?',
+		const [asignaciones] = await db.query(
+			"SELECT id FROM asignaciones WHERE activo_id = ? AND activo = 1",
 			[id],
 		);
+		if (asignaciones.length > 0) {
+			return res.status(400).json({
+				error: `No se puede eliminar: el activo está asignado a ${asignaciones.length} usuario(s)`,
+			});
+		}
 
-		const detalles = `Baja permanente del activo "${nombre}"`;
-		await db.query(
-			"INSERT INTO historial (activo_id, accion, usuario_responsable, detalles) VALUES (?, ?, ?, ?)",
-			[id, "Baja del activo", req.user.id, detalles],
-		);
+		await db.query("START TRANSACTION");
+
+		await db.query("DELETE FROM garantias WHERE activo_id = ?", [id]);
+
+		await db.query("DELETE FROM activos WHERE id = ?", [id]);
 
 		await db.query("COMMIT");
 
@@ -1103,8 +1007,8 @@ exports.deleteActivo = async (req, res) => {
 			await r2Service.deleteFromR2(key).catch(() => {});
 		}
 
-		console.log("[ACTIVOS] Éxito - Activo eliminado:", id);
-		res.status(200).json({ message: "Activo eliminado exitosamente" });
+		console.log("[ACTIVOS] Éxito - Activo eliminado físicamente:", id);
+		res.status(200).json({ message: `Activo "${nombre}" eliminado físicamente` });
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
 		console.error("[ERROR ACTIVOS]:", error.message);
@@ -1157,7 +1061,7 @@ exports.obtenerDatosAuxiliares = async (_req, res) => {
 	}
 };
 exports.validarEtiquetaSerial = async (req, res) => {
-	const { etiqueta_serial } = req.body;
+	const { etiqueta_serial } = req.validated;
 
 	try {
 		console.log("[ACTIVOS] Inicio - Validando etiqueta serial:", etiqueta_serial);

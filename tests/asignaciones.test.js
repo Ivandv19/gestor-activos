@@ -28,6 +28,8 @@ app.use(express.json());
 
 // Import controller directly
 const asignacionesController = require("../controllers/asignacionesController");
+const validate = require("../middleware/validate");
+const { createAsignacionSchema, updateAsignacionSchema } = require("../schemas/asignaciones");
 
 // Define routes inline
 app.get(
@@ -40,7 +42,7 @@ app.post(
 	"/api/asignaciones",
 	authenticate,
 	checkRole("Administrador"),
-	imageUploadMiddleware,
+	validate(createAsignacionSchema),
 	asignacionesController.createAsignacion,
 );
 app.get(
@@ -62,6 +64,7 @@ app.put(
 	"/api/asignaciones/:id",
 	authenticate,
 	checkRole("Administrador"),
+	validate(updateAsignacionSchema),
 	asignacionesController.updateAsignacion,
 );
 app.delete(

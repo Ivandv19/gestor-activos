@@ -5,26 +5,28 @@
     "": {
       "name": "gestor-activos-it",
       "dependencies": {
-        "@aws-sdk/client-s3": "^3.1041.0",
+        "@aws-sdk/client-s3": "^3.1053.0",
         "bcrypt": "^6.0.0",
         "bcryptjs": "^3.0.3",
         "cors": "^2.8.6",
-        "dotenv": "^17.3.1",
+        "dotenv": "^17.4.2",
         "express": "^5.2.1",
-        "express-rate-limit": "^8.3.0",
-        "helmet": "^8.1.0",
+        "express-rate-limit": "^8.5.2",
+        "helmet": "^8.2.0",
         "jsonwebtoken": "^9.0.3",
         "morgan": "^1.10.1",
         "multer": "^2.1.1",
-        "mysql2": "^3.19.0",
+        "mysql2": "^3.22.3",
         "node-cache": "^5.1.2",
         "sql-template-strings": "^2.2.2",
-        "swagger-jsdoc": "^6.2.8",
+        "swagger-jsdoc": "^6.3.0",
         "swagger-ui-express": "^5.0.1",
+        "zod": "^4.4.3",
+        "zod-openapi": "^5.4.6",
       },
       "devDependencies": {
         "@biomejs/biome": "2.3.14",
-        "jest": "^30.2.0",
+        "jest": "^30.4.2",
         "nodemon": "^3.1.14",
         "supertest": "^7.2.2",
       },
@@ -1042,6 +1044,10 @@
     "yargs-parser": ["yargs-parser@21.1.1", "", {}, "sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw=="],
 
     "yocto-queue": ["yocto-queue@0.1.0", "", {}, "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="],
+
+    "zod": ["zod@4.4.3", "", {}, "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="],
+
+    "zod-openapi": ["zod-openapi@5.4.6", "", { "peerDependencies": { "zod": "^3.25.74 || ^4.0.0" } }, "sha512-P2jsOOBAq/6hCwUsMCjUATZ8szkMsV5VAwZENfyxp2Hc/XPJQpVwAgevWZc65xZauCwWB9LAn7zYeiCJFAEL+A=="],
 
     "@aws-crypto/crc32/@aws-sdk/types": ["@aws-sdk/types@3.973.8", "", { "dependencies": { "@smithy/types": "^4.14.1", "tslib": "^2.6.2" } }, "sha512-gjlAdtHMbtR9X5iIhVUvbVcy55KnznpC6bkDUWW9z915bi0ckdUr5cjf16Kp6xq0bP5HBD2xzgbL9F9Quv5vUw=="],
 
