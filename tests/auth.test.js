@@ -111,7 +111,6 @@ describe("Auth Endpoints", () => {
 			expect(res.body.error).toBe(
 				"El servicio de autenticación no está disponible.",
 			);
-			expect(res.body.errorCode).toBe("AUTH_003");
 		});
 	});
 

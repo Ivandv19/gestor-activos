@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 exports.getResumen = async (_req, res) => {
 	try {
-		// Consulta para calcular estadísticas generales
+		console.log("[DASHBOARD] Inicio - Obteniendo resumen del dashboard");
 		const [result] = await pool.query(`
       SELECT 
         COUNT(*) AS total_activos,
@@ -76,6 +76,10 @@ exports.getResumen = async (_req, res) => {
 			data: tendenciaMensualResult.map((row) => row.cantidad), // Datos: [10, 20, ...]
 		};
 
+		console.log(
+			"[DASHBOARD] Éxito - Resumen del dashboard obtenido correctamente",
+		);
+
 		// Devolver las estadísticas junto con la tendencia mensual y el año
 		res.status(200).json({
 			total_activos: result[0].total_activos,
@@ -87,16 +91,16 @@ exports.getResumen = async (_req, res) => {
 			ano_tendencia: ano,
 		});
 	} catch (error) {
-		console.error("[ERROR GET RESUMEN]:", error.message); // Logs detallados para depuración
+		console.error("[ERROR DASHBOARD]:", error.message);
 		res
 			.status(500)
-			.json({ message: "Error al obtener el resumen del dashboard" });
+			.json({ error: "Error al obtener el resumen del dashboard" });
 	}
 };
 
 exports.getAlertas = async (_req, res) => {
 	try {
-		// Consulta para contar licencias próximas a vencer
+		console.log("[DASHBOARD] Inicio - Obteniendo alertas del dashboard");
 		const [licenciasProximas] = await pool.query(`
             SELECT COUNT(*) AS count
             FROM activos
@@ -124,6 +128,10 @@ exports.getAlertas = async (_req, res) => {
             WHERE activo = 1 AND fecha_devolucion BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
         `);
 
+		console.log(
+			"[DASHBOARD] Éxito - Alertas del dashboard obtenidas correctamente",
+		);
+
 		// Devolver un resumen numérico de las alertas
 		res.status(200).json({
 			licencias_proximas_a_vencer: licenciasProximas[0].count || 0,
@@ -132,9 +140,9 @@ exports.getAlertas = async (_req, res) => {
 			activos_proximos_a_devolver: activosDevolver[0].count || 0,
 		});
 	} catch (error) {
-		console.error("[ERROR GET ALERTAS]:", error.message); // Logs detallados para depuración
+		console.error("[ERROR DASHBOARD]:", error.message);
 		res
 			.status(500)
-			.json({ message: "Error al obtener las alertas del dashboard" });
+			.json({ error: "Error al obtener las alertas del dashboard" });
 	}
 };

@@ -128,7 +128,7 @@ describe("Configuración Endpoints", () => {
 				.send(updateData);
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty("message");
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should return 400 when idioma is invalid", async () => {
@@ -144,8 +144,8 @@ describe("Configuración Endpoints", () => {
 				.send(updateData);
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty("message");
-			expect(res.body.message).toContain("Idioma no válido");
+			expect(res.body).toHaveProperty("error");
+			expect(res.body.error).toContain("Idioma no válido.");
 		});
 
 		it("should return 400 when zona_horaria is invalid", async () => {
@@ -161,21 +161,19 @@ describe("Configuración Endpoints", () => {
 				.send(updateData);
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty("message");
-			expect(res.body.message).toContain("Zona horaria no válida");
+			expect(res.body).toHaveProperty("error");
+			expect(res.body.error).toContain("Zona horaria no válida.");
 		});
 
 		it("should return 500 on DB error", async () => {
 			db.query.mockRejectedValueOnce(new Error("DB error"));
 
-			const res = await request(app)
-				.put("/api/configuracion/aplicacion")
-				.send({
-					idioma: "es",
-					zona_horaria: "UTC-5",
-					formato_fecha: "DD/MM/YYYY",
-					formato_moneda: "USD",
-				});
+			const res = await request(app).put("/api/configuracion/aplicacion").send({
+				idioma: "es",
+				zona_horaria: "UTC-5",
+				formato_fecha: "DD/MM/YYYY",
+				formato_moneda: "USD",
+			});
 
 			expect(res.statusCode).toEqual(500);
 		});
@@ -231,7 +229,7 @@ describe("Configuración Endpoints", () => {
 			const res = await request(app).get("/api/configuracion/perfil");
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body).toHaveProperty("message");
+			expect(res.body).toHaveProperty("error");
 		});
 	});
 
@@ -287,7 +285,7 @@ describe("Configuración Endpoints", () => {
 				.send(updateData);
 
 			expect(res.statusCode).toEqual(401);
-			expect(res.body).toHaveProperty("message");
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should return 404 when user not found for password verification", async () => {

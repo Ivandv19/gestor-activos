@@ -199,7 +199,7 @@ describe("Asignaciones Endpoints", () => {
 			const res = await request(app).get("/api/asignaciones/999");
 
 			expect(res.statusCode).toEqual(404);
-			expect(res.body.mensaje).toContain("no existe");
+			expect(res.body.error).toContain("no existe");
 		});
 
 		it("should fail with 500 on DB error", async () => {
@@ -208,7 +208,7 @@ describe("Asignaciones Endpoints", () => {
 			const res = await request(app).get("/api/asignaciones/1");
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body.mensaje).toContain("Error al obtener");
+			expect(res.body.error).toContain("Error al obtener");
 		});
 	});
 
@@ -281,7 +281,7 @@ describe("Asignaciones Endpoints", () => {
 				.send({ fecha_devolucion: "invalid-date" });
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body.mensaje).toContain("inválido");
+			expect(res.body.error).toContain("inválido");
 		});
 
 		it("should fail with 500 on DB error", async () => {
@@ -292,7 +292,7 @@ describe("Asignaciones Endpoints", () => {
 				.send({ fecha_devolucion: "2023-12-01" });
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body.mensaje).toContain("Error al actualizar");
+			expect(res.body.error).toContain("Error al actualizar");
 		});
 	});
 

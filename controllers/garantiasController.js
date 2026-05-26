@@ -2,6 +2,8 @@ const db = require("../config/db");
 
 exports.getGarantias = async (req, res) => {
 	try {
+		console.log("[GARANTIAS] Inicio - Obtener garantías");
+
 		const page = parseInt(req.query.page, 10) || 1;
 		const limit = parseInt(req.query.limit, 10) || 10;
 		const offset = (page - 1) * limit;
@@ -9,7 +11,7 @@ exports.getGarantias = async (req, res) => {
 		// Validaciones
 		if (Number.isNaN(page) || Number.isNaN(limit)) {
 			return res.status(400).json({
-				mensaje: "Los parámetros de paginación deben ser números válidos.",
+				error: "Los parámetros de paginación deben ser números válidos.",
 			});
 		}
 
@@ -33,6 +35,8 @@ exports.getGarantias = async (req, res) => {
 		);
 		const total = countResult[0].total;
 
+		console.log("[GARANTIAS] Éxito - Garantías obtenidas correctamente");
+
 		res.json({
 			data: results,
 			pagination: {
@@ -42,30 +46,30 @@ exports.getGarantias = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error("[ERROR GET GARANTIAS]:", error.message);
+		console.error("[ERROR GARANTIAS]:", error.message);
 
 		if (error.code === "ER_PARSE_ERROR") {
 			return res
 				.status(400)
-				.json({ mensaje: "Error en la sintaxis de la consulta." });
+				.json({ error: "Error en la sintaxis de la consulta." });
 		}
 
 		if (error.code === "ER_NO_REFERENCED_ROW_2") {
 			return res.status(404).json({
-				mensaje:
-					"Uno de los valores relacionados no existe en la base de datos.",
+				error: "Uno de los valores relacionados no existe en la base de datos.",
 			});
 		}
 
 		res.status(500).json({
-			mensaje: "Error al obtener las garantías.",
-			error: error.message,
+			error: "Error al obtener las garantías.",
 		});
 	}
 };
 
 exports.createGarantia = async (req, res) => {
 	try {
+		console.log("[GARANTIAS] Inicio - Registrar garantía");
+
 		const {
 			activo_id,
 			proveedor_garantia_id,
@@ -88,7 +92,7 @@ exports.createGarantia = async (req, res) => {
 			!estado
 		) {
 			return res.status(400).json({
-				mensaje: "Todos los campos obligatorios deben estar presentes.",
+				error: "Todos los campos obligatorios deben estar presentes.",
 			});
 		}
 
@@ -102,12 +106,12 @@ exports.createGarantia = async (req, res) => {
 		) {
 			return res
 				.status(400)
-				.json({ mensaje: "El formato de las fechas es inválido." });
+				.json({ error: "El formato de las fechas es inválido." });
 		}
 
 		if (fechaFinValida <= fechaInicioValida) {
 			return res.status(400).json({
-				mensaje: "La fecha de fin debe ser posterior a la fecha de inicio.",
+				error: "La fecha de fin debe ser posterior a la fecha de inicio.",
 			});
 		}
 
@@ -115,7 +119,7 @@ exports.createGarantia = async (req, res) => {
 		if (!estadosPermitidos.includes(estado)) {
 			return res
 				.status(400)
-				.json({ mensaje: "El estado proporcionado no es válido." });
+				.json({ error: "El estado proporcionado no es válido." });
 		}
 
 		// Verificar que el activo exista y esté activo
@@ -124,7 +128,9 @@ exports.createGarantia = async (req, res) => {
 			[activo_id],
 		);
 		if (activo.length === 0) {
-			return res.status(404).json({ mensaje: "El activo no existe o está dado de baja." });
+			return res
+				.status(404)
+				.json({ error: "El activo no existe o está dado de baja." });
 		}
 
 		const [proveedor] = await db.query(
@@ -134,7 +140,7 @@ exports.createGarantia = async (req, res) => {
 		if (proveedor.length === 0) {
 			return res
 				.status(404)
-				.json({ mensaje: "El proveedor de garantía no existe." });
+				.json({ error: "El proveedor de garantía no existe." });
 		}
 
 		// Insertar la nueva garantía en la base de datos
@@ -159,8 +165,8 @@ exports.createGarantia = async (req, res) => {
 
 		// Registrar la acción en el historial
 		if (!req.user || !req.user.id) {
-			console.error("[ERROR CREATE GARANTIA]: Usuario no autenticado.");
-			return res.status(401).json({ mensaje: "Acceso no autorizado." });
+			console.error("[ERROR GARANTIAS]:", "Usuario no autenticado.");
+			return res.status(401).json({ error: "Acceso no autorizado." });
 		}
 
 		try {
@@ -176,17 +182,15 @@ exports.createGarantia = async (req, res) => {
 				],
 			);
 		} catch (historialError) {
-			console.error(
-				"[ERROR CREATE GARANTIA HISTORIAL]:",
-				historialError.message,
-			);
+			console.error("[ERROR GARANTIAS]:", historialError.message);
 			return res.status(500).json({
-				mensaje: "Error al registrar la acción en el historial.",
-				error: historialError.message,
+				error: "Error al registrar la acción en el historial.",
 			});
 		}
 
 		// Devolver una respuesta detallada con los datos de la garantía creada
+		console.log("[GARANTIAS] Éxito - Garantía registrada correctamente");
+
 		res.status(201).json({
 			id: result.insertId,
 			activo_id,
@@ -201,32 +205,32 @@ exports.createGarantia = async (req, res) => {
 			message: "Garantía registrada correctamente",
 		});
 	} catch (error) {
-		console.error("[ERROR CREATE GARANTIA]:", error.message);
+		console.error("[ERROR GARANTIAS]:", error.message);
 
 		// Manejo de errores específicos
 		if (error.code === "ER_NO_REFERENCED_ROW_2") {
 			return res.status(404).json({
-				mensaje:
-					"Uno de los valores relacionados no existe en la base de datos.",
+				error: "Uno de los valores relacionados no existe en la base de datos.",
 			});
 		}
 
 		if (error.code === "ER_PARSE_ERROR") {
 			return res
 				.status(400)
-				.json({ mensaje: "Error en la sintaxis de la consulta." });
+				.json({ error: "Error en la sintaxis de la consulta." });
 		}
 
 		// Error genérico
 		res.status(500).json({
-			mensaje: "Error al registrar la garantía.",
-			error: error.message,
+			error: "Error al registrar la garantía.",
 		});
 	}
 };
 
 exports.updateGarantia = async (req, res) => {
 	try {
+		console.log("[GARANTIAS] Inicio - Actualizar garantía");
+
 		const { id } = req.params;
 		const {
 			nombre_garantia,
@@ -244,7 +248,7 @@ exports.updateGarantia = async (req, res) => {
 			[id],
 		);
 		if (garantiaExistente.length === 0) {
-			return res.status(404).json({ mensaje: "La garantía no existe." });
+			return res.status(404).json({ error: "La garantía no existe." });
 		}
 
 		// Obtener el nombre del activo asociado
@@ -258,7 +262,7 @@ exports.updateGarantia = async (req, res) => {
 		if (estado && !estadosPermitidos.includes(estado)) {
 			return res
 				.status(400)
-				.json({ mensaje: "El estado proporcionado no es válido." });
+				.json({ error: "El estado proporcionado no es válido." });
 		}
 
 		// Validar formato de fecha_fin si se proporciona
@@ -267,14 +271,14 @@ exports.updateGarantia = async (req, res) => {
 			if (Number.isNaN(fechaFinValida.getTime())) {
 				return res
 					.status(400)
-					.json({ mensaje: "El formato de la fecha de fin es inválido." });
+					.json({ error: "El formato de la fecha de fin es inválido." });
 			}
 
 			// Verificar que la fecha_fin sea posterior a la fecha actual
 			const fechaActual = new Date();
 			if (fechaFinValida <= fechaActual) {
 				return res.status(400).json({
-					mensaje: "La fecha de fin debe ser posterior a la fecha actual.",
+					error: "La fecha de fin debe ser posterior a la fecha actual.",
 				});
 			}
 		}
@@ -295,7 +299,7 @@ exports.updateGarantia = async (req, res) => {
 		if (Object.keys(fieldsToUpdate).length === 0) {
 			return res
 				.status(400)
-				.json({ mensaje: "No se proporcionaron campos para actualizar." });
+				.json({ error: "No se proporcionaron campos para actualizar." });
 		}
 
 		const query = `
@@ -310,7 +314,7 @@ exports.updateGarantia = async (req, res) => {
 
 		// Registrar la acción en el historial
 		if (!req.user || !req.user.id) {
-			return res.status(401).json({ mensaje: "Acceso no autorizado." });
+			return res.status(401).json({ error: "Acceso no autorizado." });
 		}
 
 		await db.query(
@@ -334,6 +338,9 @@ exports.updateGarantia = async (req, res) => {
 			[id],
 		);
 		const row = garantiaActualizada[0];
+
+		console.log("[GARANTIAS] Éxito - Garantía actualizada correctamente");
+
 		res.json({
 			id: row.id,
 			activo_id: row.activo_id,
@@ -348,36 +355,40 @@ exports.updateGarantia = async (req, res) => {
 			message: "Garantía actualizada correctamente",
 		});
 	} catch (error) {
-		console.error("[ERROR UPDATE GARANTIA]:", error.message);
+		console.error("[ERROR GARANTIAS]:", error.message);
 
 		// Manejo de errores específicos
 		if (error.code === "ER_NO_REFERENCED_ROW_2") {
 			return res.status(404).json({
-				mensaje:
-					"Uno de los valores relacionados no existe en la base de datos.",
+				error: "Uno de los valores relacionados no existe en la base de datos.",
 			});
 		}
 
 		if (error.code === "ER_PARSE_ERROR") {
 			return res
 				.status(400)
-				.json({ mensaje: "Error en la sintaxis de la consulta." });
+				.json({ error: "Error en la sintaxis de la consulta." });
 		}
 
 		// Error genérico
 		res.status(500).json({
-			mensaje: "Error al actualizar la garantía.",
-			error: error.message,
+			error: "Error al actualizar la garantía.",
 		});
 	}
 };
 
 exports.deleteGarantia = async (req, res) => {
 	try {
+		console.log("[GARANTIAS] Inicio - Eliminar garantía");
+
 		const { id } = req.params;
 		await db.query("UPDATE garantias SET activo = 0 WHERE id = ?", [id]);
+
+		console.log("[GARANTIAS] Éxito - Garantía eliminada correctamente");
+
 		res.json({ message: "Garantía eliminada correctamente" });
 	} catch (error) {
-		res.status(500).json({ message: "Error al eliminar la garantía", error });
+		console.error("[ERROR GARANTIAS]:", error.message);
+		res.status(500).json({ error: "Error al eliminar la garantía." });
 	}
 };

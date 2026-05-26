@@ -172,7 +172,6 @@ describe("Activos Endpoints", () => {
 			const res = await request(app).patch("/api/gestion-activos/baja/1");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.success).toBe(true);
 		});
 	});
 
@@ -238,8 +237,7 @@ describe("Activos Endpoints", () => {
 				descripcion: "Old description",
 			};
 
-			db.query
-				.mockResolvedValueOnce([[mockActivoExistente], []]);
+			db.query.mockResolvedValueOnce([[mockActivoExistente], []]);
 
 			const res = await request(app)
 				.put("/api/gestion-activos/activos/1")

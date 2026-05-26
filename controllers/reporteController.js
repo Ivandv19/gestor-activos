@@ -2,29 +2,26 @@ const db = require("../config/db");
 
 exports.getTiposReporte = async (_req, res) => {
 	try {
+		console.log("[REPORTES] Inicio - getTiposReporte");
 		// Consulta SQL directa a la base de datos
 		const query = "SELECT id, nombre, descripcion, activo FROM tiposreporte";
 		const [tiposReporte] = await db.query(query);
 
 		// Validación de datos encontrados
 		if (!tiposReporte || tiposReporte.length === 0) {
-			console.warn("[WARN] No hay tipos de reporte registrados");
+			console.warn("[REPORTES] No hay tipos de reporte registrados");
 			return res
 				.status(404)
 				.json({ error: "No existen tipos de reporte registrados." });
 		}
 
+		console.log("[REPORTES] Éxito - getTiposReporte");
 		// Respuesta exitosa
 		res.status(200).json({
-			success: true,
 			tiposReporte,
 		});
 	} catch (error) {
-		console.error("[ERROR CRÍTICO] Fallo en getTiposReporte:", {
-			error: error.message,
-			query: error.sql, // Si es error de MySQL
-			timestamp: new Date().toLocaleString(),
-		});
+		console.error("[ERROR REPORTES]:", error.message);
 
 		// Respuesta de error simplificada
 		res.status(500).json({ error: "Error en la consulta." });
@@ -33,6 +30,7 @@ exports.getTiposReporte = async (_req, res) => {
 
 exports.getDatosAuxiliares = async (_req, res) => {
 	try {
+		console.log("[REPORTES] Inicio - getDatosAuxiliares");
 		// Consultas SQL para obtener los datos
 		const [tiposActivo] = await db.query("SELECT id, nombre FROM tipos");
 		const [usuarios] = await db.query("SELECT id, nombre FROM usuarios");
@@ -47,24 +45,20 @@ exports.getDatosAuxiliares = async (_req, res) => {
 			proveedores,
 		};
 
+		console.log("[REPORTES] Éxito - getDatosAuxiliares");
 		// Enviar la respuesta al cliente
 		res.json(response);
 	} catch (error) {
-		console.error(
-			"[ERROR] Error al obtener los datos auxiliares:",
-			error.message,
-		);
-		res.status(500).json({
-			message: "Error al obtener los datos auxiliares",
-			error: error.message,
-		});
+		console.error("[ERROR REPORTES]:", error.message);
+		res.status(500).json({ error: "Error al obtener los datos auxiliares" });
 	}
 };
 
 exports.generarReporte = async (req, res) => {
 	try {
+		console.log("[REPORTES] Inicio - generarReporte");
 		const { tipo_id, filtros } = req.body;
-		console.log(tipo_id, filtros);
+		console.log("[REPORTES]", tipo_id, filtros);
 
 		// Validar que se haya proporcionado un tipo de reporte
 		if (!tipo_id) {
@@ -326,7 +320,7 @@ exports.generarReporte = async (req, res) => {
 		query =
 			baseQuery + (groupByClause ? ` GROUP BY ${groupByClause.trim()}` : "");
 
-		console.log("Consulta final:", query);
+		console.log("[REPORTES] Consulta final:", query);
 		// Ejecutar la consulta
 		const [results] = await db.query(query, params);
 
@@ -367,9 +361,9 @@ exports.generarReporte = async (req, res) => {
 			});
 		}
 
+		console.log("[REPORTES] Éxito - generarReporte");
 		// Construir la respuesta estándar
 		return res.json({
-			success: true,
 			message: "Reporte generado exitosamente.",
 			tipo_reporte: tipo_reporte,
 			descripcion: descripcion,
@@ -387,12 +381,8 @@ exports.generarReporte = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error("[ERROR]", error.message);
-		return res.status(500).json({
-			success: false,
-			message: "Error al generar el reporte.",
-			error: error.message,
-		});
+		console.error("[ERROR REPORTES]:", error.message);
+		return res.status(500).json({ error: "Error al generar el reporte." });
 	}
 
 	// Funciones auxiliares para obtener nombres relacionados

@@ -76,7 +76,6 @@ describe("Reporte Endpoints", () => {
 			const res = await request(app).get("/api/reportes/tipos");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("success", true);
 			expect(res.body).toHaveProperty("tiposReporte");
 			expect(res.body.tiposReporte).toHaveLength(2);
 			expect(res.body.tiposReporte[0]).toHaveProperty("id", 1);
@@ -144,7 +143,7 @@ describe("Reporte Endpoints", () => {
 			const res = await request(app).get("/api/reportes/datos-auxiliares");
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body).toHaveProperty("message");
+			expect(res.body).toHaveProperty("error");
 		});
 	});
 
@@ -176,7 +175,6 @@ describe("Reporte Endpoints", () => {
 				.send({ tipo_id: 1, filtros: {} });
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("success", true);
 			expect(res.body).toHaveProperty(
 				"message",
 				"Reporte generado exitosamente.",
@@ -237,9 +235,8 @@ describe("Reporte Endpoints", () => {
 				.send({ tipo_id: 1, filtros: {} });
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body).toHaveProperty("success", false);
 			expect(res.body).toHaveProperty(
-				"message",
+				"error",
 				"Error al generar el reporte.",
 			);
 		});

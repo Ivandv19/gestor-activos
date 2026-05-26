@@ -110,7 +110,7 @@ describe("Garantias Endpoints", () => {
 			const res = await request(app).get("/api/garantias");
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body).toHaveProperty("mensaje");
+			expect(res.body).toHaveProperty("error");
 		});
 	});
 
@@ -158,7 +158,7 @@ describe("Garantias Endpoints", () => {
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty(
-				"mensaje",
+				"error",
 				"Todos los campos obligatorios deben estar presentes.",
 			);
 		});
@@ -175,7 +175,7 @@ describe("Garantias Endpoints", () => {
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty(
-				"mensaje",
+				"error",
 				"La fecha de fin debe ser posterior a la fecha de inicio.",
 			);
 		});
@@ -192,7 +192,7 @@ describe("Garantias Endpoints", () => {
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty(
-				"mensaje",
+				"error",
 				"El estado proporcionado no es válido.",
 			);
 		});
@@ -203,7 +203,10 @@ describe("Garantias Endpoints", () => {
 			const res = await request(app).post("/api/garantias").send(validGarantia);
 
 			expect(res.statusCode).toEqual(404);
-			expect(res.body).toHaveProperty("mensaje", "El activo no existe o está dado de baja.");
+			expect(res.body).toHaveProperty(
+				"error",
+				"El activo no existe o está dado de baja.",
+			);
 		});
 
 		it("should fail with 404 when proveedor does not exist", async () => {
@@ -215,7 +218,7 @@ describe("Garantias Endpoints", () => {
 
 			expect(res.statusCode).toEqual(404);
 			expect(res.body).toHaveProperty(
-				"mensaje",
+				"error",
 				"El proveedor de garantía no existe.",
 			);
 		});
@@ -275,7 +278,7 @@ describe("Garantias Endpoints", () => {
 				.send({ estado: "Vigente" });
 
 			expect(res.statusCode).toEqual(404);
-			expect(res.body).toHaveProperty("mensaje", "La garantía no existe.");
+			expect(res.body).toHaveProperty("error", "La garantía no existe.");
 		});
 
 		it("should fail with 400 when estado is invalid", async () => {
@@ -289,7 +292,7 @@ describe("Garantias Endpoints", () => {
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty(
-				"mensaje",
+				"error",
 				"El estado proporcionado no es válido.",
 			);
 		});
@@ -305,7 +308,7 @@ describe("Garantias Endpoints", () => {
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty(
-				"mensaje",
+				"error",
 				"El formato de la fecha de fin es inválido.",
 			);
 		});
@@ -319,7 +322,7 @@ describe("Garantias Endpoints", () => {
 
 			expect(res.statusCode).toEqual(400);
 			expect(res.body).toHaveProperty(
-				"mensaje",
+				"error",
 				"No se proporcionaron campos para actualizar.",
 			);
 		});
@@ -344,7 +347,7 @@ describe("Garantias Endpoints", () => {
 			const res = await request(app).delete("/api/garantias/1");
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body).toHaveProperty("message");
+			expect(res.body).toHaveProperty("error");
 		});
 	});
 });

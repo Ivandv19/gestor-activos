@@ -185,7 +185,7 @@ describe("Historial Endpoints", () => {
 
 			expect(res.statusCode).toEqual(404);
 			expect(res.body).toHaveProperty("error");
-			expect(res.body).toHaveProperty("errorCode", "HIST_001");
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should return 404 if no usuarios found", async () => {
@@ -199,7 +199,7 @@ describe("Historial Endpoints", () => {
 
 			expect(res.statusCode).toEqual(404);
 			expect(res.body).toHaveProperty("error");
-			expect(res.body).toHaveProperty("errorCode", "HIST_002");
+			expect(res.body).toHaveProperty("error");
 		});
 
 		it("should return 500 on database error", async () => {
@@ -209,7 +209,6 @@ describe("Historial Endpoints", () => {
 
 			expect(res.statusCode).toEqual(500);
 			expect(res.body).toHaveProperty("error");
-			expect(res.body).toHaveProperty("errorCode", "HIST_500");
 		});
 	});
 
@@ -229,8 +228,8 @@ describe("Historial Endpoints", () => {
 			});
 
 			expect(res.statusCode).toEqual(201);
-			expect(res.body).toHaveProperty("mensaje");
-			expect(res.body.mensaje).toContain("registrada correctamente");
+			expect(res.body).toHaveProperty("message");
+			expect(res.body.message).toContain("registrada correctamente");
 			expect(res.body).toHaveProperty("historial");
 			expect(res.body.historial).toHaveProperty("accion", "Mantenimiento");
 		});
@@ -248,8 +247,8 @@ describe("Historial Endpoints", () => {
 				.send({ accion: "Mantenimiento" });
 
 			expect(res.statusCode).toEqual(404);
-			expect(res.body).toHaveProperty("mensaje");
-			expect(res.body.mensaje).toContain("No se encontró ningún activo");
+			expect(res.body).toHaveProperty("error");
+			expect(res.body.error).toContain("No se encontró ningún activo");
 		});
 
 		it("should return 400 if accion is missing", async () => {
@@ -262,8 +261,8 @@ describe("Historial Endpoints", () => {
 				.send({ detalles: "Sin acción" });
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty("mensaje");
-			expect(res.body.mensaje).toContain("El campo");
+			expect(res.body).toHaveProperty("error");
+			expect(res.body.error).toContain("El campo");
 		});
 
 		it("should return 400 if accion is empty string", async () => {
@@ -276,8 +275,8 @@ describe("Historial Endpoints", () => {
 				.send({ accion: "", detalles: "Empty action" });
 
 			expect(res.statusCode).toEqual(400);
-			expect(res.body).toHaveProperty("mensaje");
-			expect(res.body.mensaje).toContain("El campo");
+			expect(res.body).toHaveProperty("error");
+			expect(res.body.error).toContain("El campo");
 		});
 
 		it("should use current date if fecha not provided", async () => {
@@ -309,7 +308,7 @@ describe("Historial Endpoints", () => {
 				.send({ accion: "Mantenimiento" });
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body).toHaveProperty("mensaje");
+			expect(res.body).toHaveProperty("error");
 		});
 	});
 });

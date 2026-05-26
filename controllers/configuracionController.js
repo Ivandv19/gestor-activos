@@ -4,43 +4,45 @@ const r2Service = require("../services/r2Service");
 
 exports.getConfiguracionAplicacion = async (_req, res) => {
 	try {
+		console.log("[CONFIG] Inicio - obtener configuración de la aplicación");
 		const [rows] = await db.query(
 			"SELECT idioma, zona_horaria, formato_fecha, formato_moneda FROM configuracion WHERE id = 1",
 		);
 
 		if (rows.length === 0) {
-			return res.status(404).json({ message: "Configuración no encontrada" });
+			return res.status(404).json({ error: "Configuración no encontrada" });
 		}
 
+		console.log("[CONFIG] Éxito - configuración de la aplicación obtenida");
 		res.json(rows[0]);
 	} catch (error) {
-		console.error("[ERROR GET CONFIG]:", error.message);
+		console.error("[ERROR CONFIG]:", error.message);
 		res.status(500).json({
-			message: "Error al obtener la configuración global",
-			error: error.message,
+			error: "Error al obtener la configuración global",
 		});
 	}
 };
 
 exports.updateConfiguracionAplicacion = async (req, res) => {
 	try {
+		console.log("[CONFIG] Inicio - actualizar configuración de la aplicación");
 		const { idioma, zona_horaria, formato_fecha, formato_moneda } = req.body;
 
 		if (!idioma || !zona_horaria || !formato_fecha || !formato_moneda) {
 			return res
 				.status(400)
-				.json({ message: "Todos los campos son obligatorios." });
+				.json({ error: "Todos los campos son obligatorios." });
 		}
 
 		const validLanguages = ["es", "en", "fr"];
 		const validTimeZones = ["UTC-5", "UTC+1", "UTC+2"];
 
 		if (!validLanguages.includes(idioma)) {
-			return res.status(400).json({ message: "Idioma no válido." });
+			return res.status(400).json({ error: "Idioma no válido." });
 		}
 
 		if (!validTimeZones.includes(zona_horaria)) {
-			return res.status(400).json({ message: "Zona horaria no válida." });
+			return res.status(400).json({ error: "Zona horaria no válida." });
 		}
 
 		await db.query(
@@ -48,15 +50,20 @@ exports.updateConfiguracionAplicacion = async (req, res) => {
 			[idioma, zona_horaria, formato_fecha, formato_moneda],
 		);
 
+		console.log("[CONFIG] Éxito - configuración de la aplicación actualizada");
 		res.json({
 			message: "Configuración global actualizada correctamente",
-			nuevaConfiguracion: { idioma, zona_horaria, formato_fecha, formato_moneda },
+			nuevaConfiguracion: {
+				idioma,
+				zona_horaria,
+				formato_fecha,
+				formato_moneda,
+			},
 		});
 	} catch (error) {
-		console.error("[ERROR UPDATE CONFIG]:", error.message);
+		console.error("[ERROR CONFIG]:", error.message);
 		res.status(500).json({
-			message: "Error al actualizar la configuración global",
-			error: error.message,
+			error: "Error al actualizar la configuración global",
 		});
 	}
 };
@@ -69,6 +76,7 @@ const errorMessages = {
 
 exports.getPerfilUsuario = async (req, res) => {
 	try {
+		console.log("[CONFIG] Inicio - obtener perfil del usuario");
 		const userId = req.user?.id;
 
 		if (!userId) {
@@ -85,26 +93,26 @@ exports.getPerfilUsuario = async (req, res) => {
 			return res.status(404).json({ error: errorMessages.userNotFound });
 		}
 
+		console.log("[CONFIG] Éxito - perfil del usuario obtenido");
 		res.json(usuario);
 	} catch (error) {
-		console.error("Error en getPerfilUsuario:", error);
+		console.error("[ERROR CONFIG]:", error.message);
 
 		if (error.code === "ER_BAD_FIELD_ERROR") {
 			return res.status(500).json({
-				message: "Error en la consulta: campo inválido.",
-				error: error.message,
+				error: "Error en la consulta: campo inválido.",
 			});
 		}
 
 		res.status(500).json({
-			message: errorMessages.databaseError,
-			error: error.message,
+			error: errorMessages.databaseError,
 		});
 	}
 };
 
 exports.updatePerfilUsuario = async (req, res) => {
 	try {
+		console.log("[CONFIG] Inicio - actualizar perfil del usuario");
 		const userId = req.user.id;
 		const {
 			nombre,
@@ -138,7 +146,7 @@ exports.updatePerfilUsuario = async (req, res) => {
 		if (!isMatch) {
 			return res
 				.status(401)
-				.json({ message: "La contraseña actual es incorrecta." });
+				.json({ error: "La contraseña actual es incorrecta." });
 		}
 
 		if (!nombre && !email && !departamento && !nueva_contrasena && !foto_url) {
@@ -204,18 +212,19 @@ exports.updatePerfilUsuario = async (req, res) => {
 
 		await db.query(query, values);
 
+		console.log("[CONFIG] Éxito - perfil del usuario actualizado");
 		res.json({ message: "Datos del perfil actualizados correctamente." });
 	} catch (error) {
-		console.error("Error en updatePerfilUsuario:", error);
+		console.error("[ERROR CONFIG]:", error.message);
 		res.status(500).json({
-			message: "Error al actualizar los datos del perfil del usuario",
-			error: error.message,
+			error: "Error al actualizar los datos del perfil del usuario",
 		});
 	}
 };
 
 exports.uploadImage = async (req, res) => {
 	try {
+		console.log("[CONFIG] Inicio - subir imagen de perfil");
 		if (!req.file) {
 			return res.status(400).json({ error: "No se recibió ninguna imagen." });
 		}
@@ -227,9 +236,10 @@ exports.uploadImage = async (req, res) => {
 			req.file.mimetype,
 		);
 
+		console.log("[CONFIG] Éxito - imagen de perfil subida");
 		res.json({ url: result.url });
 	} catch (error) {
-		console.error("[ERROR SUBIR IMAGEN]:", error.message);
+		console.error("[ERROR CONFIG]:", error.message);
 		res.status(500).json({ error: "Error al subir la imagen" });
 	}
 };

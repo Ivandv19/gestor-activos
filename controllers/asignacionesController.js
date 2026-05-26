@@ -2,6 +2,8 @@ const db = require("../config/db");
 
 exports.getAsignaciones = async (req, res) => {
 	try {
+		console.log("[ASIGNACIONES] Inicio - obtener asignaciones");
+
 		// Parámetros de paginación
 		const page = parseInt(req.query.page, 10) || 1;
 		const limit = parseInt(req.query.limit, 10) || 10;
@@ -13,14 +15,14 @@ exports.getAsignaciones = async (req, res) => {
 		// Parámetros de filtrado (todos opcionales)
 		const { search = "", tipo, ubicacion, usuario_asignado } = req.query;
 
-		console.log("[BACKEND] Parámetros recibidos:", req.query);
-
 		// Construir WHERE dinámico
 		const whereClauses = [];
 		const queryParams = [];
 
 		if (search) {
-			whereClauses.push(`(ac.id LIKE ? OR MATCH(ac.nombre) AGAINST(? IN BOOLEAN MODE))`);
+			whereClauses.push(
+				`(ac.id LIKE ? OR MATCH(ac.nombre) AGAINST(? IN BOOLEAN MODE))`,
+			);
 			queryParams.push(`%${search}%`, `${search}*`);
 		}
 
@@ -84,6 +86,8 @@ exports.getAsignaciones = async (req, res) => {
 		const [totalResult] = await db.query(totalQuery, queryParams.slice(0, -2));
 		const totalAsignaciones = totalResult[0].total;
 
+		console.log("[ASIGNACIONES] Éxito - obtener asignaciones");
+
 		// Respuesta con metadatos de paginación
 		res.json({
 			data: results,
@@ -95,13 +99,15 @@ exports.getAsignaciones = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error("[ERROR GET ASIGNACIONES]:", error.message);
+		console.error("[ERROR ASIGNACIONES]:", error.message);
 		res.status(500).json({ error: "Error al obtener las asignaciones." });
 	}
 };
 
 exports.createAsignacion = async (req, res) => {
 	try {
+		console.log("[ASIGNACIONES] Inicio - crear asignación");
+
 		const {
 			activo_id,
 			usuario_id,
@@ -137,7 +143,9 @@ exports.createAsignacion = async (req, res) => {
 		);
 
 		if (validaciones[0].activo_existe === 0) {
-			return res.status(404).json({ error: "El activo no existe o está dado de baja." });
+			return res
+				.status(404)
+				.json({ error: "El activo no existe o está dado de baja." });
 		}
 		if (validaciones[0].usuario_existe === 0) {
 			return res.status(404).json({ error: "El usuario no existe." });
@@ -204,6 +212,8 @@ exports.createAsignacion = async (req, res) => {
 
 		await db.query("COMMIT");
 
+		console.log("[ASIGNACIONES] Éxito - crear asignación");
+
 		// Respuesta
 		res.json({
 			id: result.insertId,
@@ -217,7 +227,7 @@ exports.createAsignacion = async (req, res) => {
 		});
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
-		console.error("[ERROR CREATE ASIGNACION]:", error.message);
+		console.error("[ERROR ASIGNACIONES]:", error.message);
 
 		// Manejo de errores específicos
 		if (error.code === "ER_DUP_ENTRY") {
@@ -237,6 +247,8 @@ exports.createAsignacion = async (req, res) => {
 
 exports.getAsignacionPorId = async (req, res) => {
 	try {
+		console.log("[ASIGNACIONES] Inicio - obtener asignación por ID");
+
 		const { id } = req.params;
 
 		// Obtener la asignación por su ID
@@ -259,7 +271,7 @@ exports.getAsignacionPorId = async (req, res) => {
 
 		// Verificar si la asignación existe
 		if (asignacion.length === 0) {
-			return res.status(404).json({ mensaje: "La asignación no existe." });
+			return res.status(404).json({ error: "La asignación no existe." });
 		}
 
 		// Construir la respuesta con los datos necesarios
@@ -278,28 +290,31 @@ exports.getAsignacionPorId = async (req, res) => {
 		};
 
 		// Enviar la respuesta
+		console.log("[ASIGNACIONES] Éxito - obtener asignación por ID");
 		res.json({
 			asignacion: asignacionData,
 			message: "Asignación obtenida correctamente.",
 		});
 	} catch (error) {
-		console.error("[ERROR GET ASIGNACION POR ID]:", error.message);
+		console.error("[ERROR ASIGNACIONES]:", error.message);
 
 		// Manejo de errores específicos
 		if (error.message.includes("FOREIGN KEY")) {
 			return res.status(400).json({
-				mensaje:
+				error:
 					"Uno de los valores relacionados no existe en la base de datos.",
 			});
 		}
 
 		// Error genérico
-		res.status(500).json({ mensaje: "Error al obtener la asignación." });
+		res.status(500).json({ error: "Error al obtener la asignación." });
 	}
 };
 
 exports.updateAsignacion = async (req, res) => {
 	try {
+		console.log("[ASIGNACIONES] Inicio - actualizar asignación");
+
 		const { id } = req.params;
 		const { fecha_devolucion, usuario_id, ubicacion_id } = req.body;
 
@@ -372,7 +387,7 @@ exports.updateAsignacion = async (req, res) => {
 			const fechaValida = new Date(fecha_devolucion);
 			if (Number.isNaN(fechaValida.getTime())) {
 				return res.status(400).json({
-					mensaje: "El formato de la fecha de devolución es inválido.",
+					error: "El formato de la fecha de devolución es inválido.",
 				});
 			}
 			comentariosDinamicos += `Fecha de devolución actualizada a "${fecha_devolucion}". `;
@@ -413,7 +428,7 @@ exports.updateAsignacion = async (req, res) => {
 
 		// Registrar la acción en el historial
 		if (!req.user || !req.user.id) {
-			return res.status(401).json({ mensaje: "Acceso no autorizado." });
+			return res.status(401).json({ error: "Acceso no autorizado." });
 		}
 
 		await db.query(
@@ -428,6 +443,8 @@ exports.updateAsignacion = async (req, res) => {
 			],
 		);
 
+		console.log("[ASIGNACIONES] Éxito - actualizar asignación");
+
 		// Respuesta
 		res.json({
 			id,
@@ -438,28 +455,28 @@ exports.updateAsignacion = async (req, res) => {
 			message: "Asignación actualizada correctamente",
 		});
 	} catch (error) {
-		console.error("[ERROR UPDATE ASIGNACION]:", error.message);
+		console.error("[ERROR ASIGNACIONES]:", error.message);
 
 		// Manejo de errores específicos
 		if (error.code === "ER_DUP_ENTRY") {
-			return res.status(400).json({ mensaje: "Esta asignación ya existe." });
+			return res.status(400).json({ error: "Esta asignación ya existe." });
 		}
 		if (error.message.includes("FOREIGN KEY")) {
 			return res.status(400).json({
-				mensaje:
+				error:
 					"Uno de los valores proporcionados no existe en la base de datos.",
 			});
 		}
 
 		// Error genérico
-		res.status(500).json({ mensaje: "Error al actualizar la asignación." });
+		res.status(500).json({ error: "Error al actualizar la asignación." });
 	}
 };
 
 exports.deleteAsignacion = async (req, res) => {
 	try {
 		const { id } = req.params;
-		console.log("ID recibido para eliminar:", id);
+		console.log("[ASIGNACIONES] Inicio - eliminar asignación");
 
 		// Paso 1: Obtener el ID del activo asociado a la asignación
 		const getActivoQuery = `
@@ -507,6 +524,8 @@ exports.deleteAsignacion = async (req, res) => {
 
 		await db.query("COMMIT");
 
+		console.log("[ASIGNACIONES] Éxito - eliminar asignación");
+
 		// Respuesta exitosa
 		res.json({
 			message: "Asignación eliminada y activo liberado correctamente",
@@ -517,13 +536,15 @@ exports.deleteAsignacion = async (req, res) => {
 		});
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
-		console.error(error);
+		console.error("[ERROR ASIGNACIONES]:", error.message);
 		res.status(500).json({ error: "Error interno del servidor" });
 	}
 };
 
 exports.getActivosDisponibles = async (req, res) => {
 	try {
+		console.log("[ASIGNACIONES] Inicio - obtener activos disponibles");
+
 		// Parámetros de paginación
 		const page = parseInt(req.query.page, 10) || 1;
 		const limit = parseInt(req.query.limit, 10) || 10;
@@ -535,7 +556,10 @@ exports.getActivosDisponibles = async (req, res) => {
 		// Parámetros de filtrado (todos opcionales)
 		const { search = "", tipo, ubicacion, proveedores } = req.query;
 
-		const whereClauses = ["activos.activo = 1", "activos.estado = 'Disponible'"];
+		const whereClauses = [
+			"activos.activo = 1",
+			"activos.estado = 'Disponible'",
+		];
 		const queryParams = [];
 
 		// Búsqueda general (nombre)
@@ -602,6 +626,8 @@ exports.getActivosDisponibles = async (req, res) => {
 
 		const total = totalRows[0].total;
 
+		console.log("[ASIGNACIONES] Éxito - obtener activos disponibles");
+
 		// Respuesta con paginación, búsqueda y opciones dinámicas
 		res.json({
 			data: rows,
@@ -613,7 +639,7 @@ exports.getActivosDisponibles = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error("[ERROR GET ACTIVOS DISPONIBLES]:", error.message); // Logs detallados para depuración
+		console.error("[ERROR ASIGNACIONES]:", error.message);
 		res.status(500).json({ error: "Error al obtener los activos disponibles" });
 	}
 };
@@ -622,7 +648,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 	try {
 		// Obtener el ID del activo desde los parámetros de la solicitud
 		const { id } = req.params;
-		console.log("ID recibido:", id);
+		console.log("[ASIGNACIONES] Inicio - obtener datos auxiliares");
 
 		// Validar que el ID sea un número
 		if (id && Number.isNaN(Number(id))) {
@@ -636,7 +662,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		try {
 			[usuarios] = await db.query("SELECT id, nombre FROM usuarios");
 		} catch (queryError) {
-			console.error("Error al consultar usuarios:", queryError);
+			console.error("[ASIGNACIONES] Error al consultar usuarios:", queryError);
 			return res.status(500).json({ error: "Error al obtener los usuarios" });
 		}
 
@@ -645,7 +671,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		try {
 			[tiposActivos] = await db.query("SELECT id, nombre FROM tipos");
 		} catch (queryError) {
-			console.error("Error al consultar tipos de activos:", queryError);
+			console.error("[ASIGNACIONES] Error al consultar tipos de activos:", queryError);
 			return res
 				.status(500)
 				.json({ error: "Error al obtener los tipos de activos" });
@@ -656,7 +682,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		try {
 			[proveedores] = await db.query("SELECT id, nombre FROM proveedores");
 		} catch (queryError) {
-			console.error("Error al consultar proveedores:", queryError);
+			console.error("[ASIGNACIONES] Error al consultar proveedores:", queryError);
 			return res
 				.status(500)
 				.json({ error: "Error al obtener los proveedores" });
@@ -667,7 +693,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 		try {
 			[ubicaciones] = await db.query("SELECT id, nombre FROM ubicaciones");
 		} catch (queryError) {
-			console.error("Error al consultar ubicaciones:", queryError);
+			console.error("[ASIGNACIONES] Error al consultar ubicaciones:", queryError);
 			return res
 				.status(500)
 				.json({ error: "Error al obtener las ubicaciones" });
@@ -693,11 +719,13 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 				// Asignar el nombre y foto del activo si existe
 				nombreActivo = activo[0].nombre;
 				fotoActivo = activo[0].foto_url;
-			} catch (queryError) {
-				console.error("Error al consultar activo:", queryError);
-				return res.status(500).json({ error: "Error al obtener el activo" });
+		} catch (queryError) {
+			console.error("[ASIGNACIONES] Error al consultar activo:", queryError);
+			return res.status(500).json({ error: "Error al obtener el activo" });
 			}
 		}
+
+		console.log("[ASIGNACIONES] Éxito - obtener datos auxiliares");
 
 		// Devuelve los datos en un objeto JSON
 		res.status(200).json({
@@ -709,7 +737,7 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 			foto_url: fotoActivo,
 		});
 	} catch (error) {
-		console.error("Error general al obtener datos auxiliares:", error);
+		console.error("[ERROR ASIGNACIONES]:", error.message);
 
 		// Error genérico para otros casos
 		res.status(500).json({ error: "Error interno del servidor" });

@@ -3,6 +3,8 @@ const db = require("../config/db");
 exports.getHistorialActivo = async (req, res) => {
 	const id = Number(req.params.id);
 
+	console.log("[HISTORIAL] Inicio - getHistorialActivo");
+
 	try {
 		// Validar que el ID sea un número
 		if (Number.isNaN(id)) {
@@ -31,7 +33,7 @@ exports.getHistorialActivo = async (req, res) => {
 		// Todos los parámetros de filtrado (opcionales)
 		const { search = "", accion = "", usuario_responsable = "" } = req.query;
 
-		console.log("Parámetros recibidos:", req.query);
+		console.log("[HISTORIAL] Parámetros recibidos:", req.query);
 
 		// Construcción de condiciones WHERE dinámicas
 		let whereClause = "";
@@ -79,7 +81,8 @@ exports.getHistorialActivo = async (req, res) => {
 
 		const total = totalRows[0].total;
 
-		// Respuesta final
+		console.log("[HISTORIAL] Éxito - getHistorialActivo");
+
 		res.json({
 			data: rows,
 			pagination: {
@@ -90,7 +93,7 @@ exports.getHistorialActivo = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error("[ERROR GET HISTORIAL ACTIVO]:", error.message);
+		console.error("[ERROR HISTORIAL]:", error.message);
 		res
 			.status(500)
 			.json({ error: "Error al obtener el historial del activo." });
@@ -98,15 +101,15 @@ exports.getHistorialActivo = async (req, res) => {
 };
 
 exports.getDatosAuxiliares = async (_req, res) => {
+	console.log("[HISTORIAL] Inicio - getDatosAuxiliares");
+
 	try {
 		// Consulta para obtener acciones
 		const [acciones] = await db.query(
 			"SELECT id, nombre, fecha_registro, estado FROM activos",
 		);
 		if (!acciones || acciones.length === 0) {
-			return res
-				.status(404)
-				.json({ error: "No se encontraron acciones", errorCode: "HIST_001" });
+			return res.status(404).json({ error: "No se encontraron acciones" });
 		}
 
 		// Consulta para obtener usuarios
@@ -117,20 +120,19 @@ exports.getDatosAuxiliares = async (_req, res) => {
       ORDER BY u.nombre ASC
     `);
 		if (!usuarios || usuarios.length === 0) {
-			return res
-				.status(404)
-				.json({ error: "No se encontraron usuarios", errorCode: "HIST_002" });
+			return res.status(404).json({ error: "No se encontraron usuarios" });
 		}
+
+		console.log("[HISTORIAL] Éxito - getDatosAuxiliares");
 
 		res.status(200).json({
 			acciones,
 			usuarios,
 		});
 	} catch (error) {
-		console.error("Error al obtener filtros del historial:", error);
+		console.error("[ERROR HISTORIAL]:", error.message);
 		res.status(500).json({
 			error: "Error interno del servidor",
-			errorCode: "HIST_500",
 		});
 	}
 };
@@ -141,6 +143,8 @@ exports.registrarAccionHistorial = async (req, res) => {
 		req.body;
 	const usuario_responsable = req.user.id;
 
+	console.log("[HISTORIAL] Inicio - registrarAccionHistorial");
+
 	try {
 		// Verificar si el activo existe
 		const [activo] = await db.query("SELECT id FROM activos WHERE id = ?", [
@@ -149,13 +153,13 @@ exports.registrarAccionHistorial = async (req, res) => {
 		if (activo.length === 0) {
 			return res
 				.status(404)
-				.json({ mensaje: `No se encontró ningún activo con el ID ${id}.` });
+				.json({ error: `No se encontró ningún activo con el ID ${id}.` });
 		}
 
 		// Validar que se proporcionen los campos obligatorios
 		if (!accion || accion.trim() === "") {
 			return res.status(400).json({
-				mensaje: 'El campo "accion" es obligatorio y no puede estar vacío.',
+				error: 'El campo "accion" es obligatorio y no puede estar vacío.',
 			});
 		}
 
@@ -179,8 +183,10 @@ exports.registrarAccionHistorial = async (req, res) => {
 		);
 
 		// Devolver la nueva entrada registrada
+		console.log("[HISTORIAL] Éxito - registrarAccionHistorial");
+
 		res.status(201).json({
-			mensaje: "Acción registrada correctamente en el historial.",
+			message: "Acción registrada correctamente en el historial.",
 			historial: {
 				id: result.insertId,
 				accion,
@@ -192,9 +198,9 @@ exports.registrarAccionHistorial = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error("[ERROR REGISTRAR ACCION HISTORIAL]:", error.message);
+		console.error("[ERROR HISTORIAL]:", error.message);
 		res
 			.status(500)
-			.json({ mensaje: "Error al registrar la acción en el historial." });
+			.json({ error: "Error al registrar la acción en el historial." });
 	}
 };

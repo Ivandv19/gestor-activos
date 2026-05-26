@@ -91,7 +91,7 @@ describe("Dashboard Endpoints", () => {
 			const res = await request(app).get("/api/dashboard/resumen");
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body).toHaveProperty("message");
+			expect(res.body).toHaveProperty("error");
 		});
 	});
 
@@ -141,7 +141,7 @@ describe("Dashboard Endpoints", () => {
 			const res = await request(app).get("/api/dashboard/alertas");
 
 			expect(res.statusCode).toEqual(500);
-			expect(res.body).toHaveProperty("message");
+			expect(res.body).toHaveProperty("error");
 		});
 	});
 });

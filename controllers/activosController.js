@@ -3,7 +3,7 @@ const r2Service = require("../services/r2Service");
 
 exports.getActivos = async (req, res) => {
 	try {
-		console.log("\n[BACKEND] Parámetros recibidos:", req.query);
+		console.log("[ACTIVOS] Inicio - Obteniendo lista de activos con parámetros:", req.query);
 
 		// Configuración inicial de paginación y ordenamiento
 		const page = parseInt(req.query.page, 10) || 1; // Página actual (default 1)
@@ -31,7 +31,9 @@ exports.getActivos = async (req, res) => {
 		const queryParams = [];
 
 		if (search) {
-			whereClauses.push(`(MATCH(activos.nombre, activos.descripcion) AGAINST(? IN BOOLEAN MODE) OR activos.id LIKE ?)`);
+			whereClauses.push(
+				`(MATCH(activos.nombre, activos.descripcion) AGAINST(? IN BOOLEAN MODE) OR activos.id LIKE ?)`,
+			);
 			queryParams.push(`${search}*`, `%${search}%`);
 		}
 
@@ -123,7 +125,8 @@ exports.getActivos = async (req, res) => {
 		);
 
 		const total = totalRows[0].total; // Total de registros sin paginación
-		console.log("[BACKEND] Resultados encontrados:", rows.length);
+		console.log("[ACTIVOS] Resultados encontrados:", rows.length);
+		console.log("[ACTIVOS] Éxito - Lista de activos obtenida");
 
 		// Construcción de respuesta final
 		res.json({
@@ -136,17 +139,18 @@ exports.getActivos = async (req, res) => {
 			},
 		});
 	} catch (error) {
-		console.error("[ERROR GET ACTIVOS]:", error);
+		console.error("[ERROR ACTIVOS]:", error.message);
 		res.status(500).json({ error: "Error al obtener los activos" });
 	}
 };
 
 exports.getActivoById = async (req, res) => {
 	const { id } = req.params; // Extraemos el ID del activo de los parámetros de la ruta
+	console.log("[ACTIVOS] Inicio - Obteniendo activo por ID:", id);
 
 	// Validación básica del ID (debe ser número entero positivo)
 	if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
-		console.warn("[GET ACTIVO BY ID]: ID inválido:", id);
+		console.warn("[ACTIVOS] ID inválido:", id);
 		return res.status(400).json({ error: "ID inválido" });
 	}
 
@@ -172,7 +176,7 @@ exports.getActivoById = async (req, res) => {
 
 		// Validación si no se encontró el activo
 		if (rows.length === 0) {
-			console.warn("[GET ACTIVO BY ID]: Activo no encontrado con ID:", id);
+			console.warn("[ACTIVOS] Activo no encontrado con ID:", id);
 			return res.status(404).json({ error: "Activo no encontrado" });
 		}
 
@@ -189,6 +193,7 @@ exports.getActivoById = async (req, res) => {
 
 		const tieneGarantia = garantiasRows.length > 0; // Flag para saber si tiene garantías
 
+		console.log("[ACTIVOS] Éxito - Activo obtenido:", id);
 		// Estructuración de la respuesta final con todos los datos del activo
 		const activo = rows[0];
 		res.status(200).json({
@@ -266,7 +271,7 @@ exports.getActivoById = async (req, res) => {
 				: null,
 		});
 	} catch (error) {
-		console.error("[ERROR GET ACTIVO BY ID]:", error.message);
+		console.error("[ERROR ACTIVOS]:", error.message);
 		res.status(500).json({ error: "Error al obtener el activo" });
 	}
 };
@@ -306,7 +311,8 @@ exports.createActivo = async (req, res) => {
 	let foto_url = null;
 
 	try {
-		console.log("[CREATE ACTIVO] Recibiendo:", {
+		console.log("[ACTIVOS] Inicio - Creando nuevo activo");
+		console.log("[ACTIVOS] Recibiendo solicitud de creación:", {
 			nombre,
 			tipo_id,
 			archivo: req.file ? req.file.originalname : "sin archivo",
@@ -315,14 +321,14 @@ exports.createActivo = async (req, res) => {
 		// Subir imagen a R2 si se recibio archivo
 		if (req.file) {
 			const key = r2Service.generateKey(nombre, req.file.mimetype);
-			console.log("[CREATE ACTIVO] Subiendo a R2:", key);
+			console.log("[ACTIVOS] Subiendo imagen a R2:", key);
 			const result = await r2Service.uploadToR2(
 				req.file.buffer,
 				key,
 				req.file.mimetype,
 			);
 			foto_url = result.url;
-			console.log("[CREATE ACTIVO] Imagen subida:", foto_url);
+			console.log("[ACTIVOS] Imagen subida a R2:", foto_url);
 		}
 		// Validación de campos obligatorios para el activo
 		if (
@@ -514,9 +520,7 @@ exports.createActivo = async (req, res) => {
 		await db.query("COMMIT");
 
 		// Respuesta exitosa
-		console.log(
-			`[CREATE ACTIVO] OK id=${activoId} nombre="${nombre}" foto_url=${foto_url || "ninguna"}`,
-		);
+		console.log("[ACTIVOS] Éxito - Activo creado:", `id=${activoId}, nombre="${nombre}"`);
 		res
 			.status(201)
 			.json({ id: activoId, message: "Activo creado exitosamente" });
@@ -526,7 +530,7 @@ exports.createActivo = async (req, res) => {
 			const key = foto_url.split("/").pop();
 			await r2Service.deleteFromR2(key).catch(() => {});
 		}
-		console.error("[ERROR CREATE ACTIVO]:", error.message);
+		console.error("[ERROR ACTIVOS]:", error.message);
 		res.status(500).json({ error: "Error al crear el activo" });
 	}
 };
@@ -584,6 +588,7 @@ exports.updateActivo = async (req, res) => {
 	} = req.body;
 
 	try {
+		console.log("[ACTIVOS] Inicio - Actualizando activo ID:", id);
 		// Subir imagen a R2 si se recibio archivo
 		let foto_url = foto_url_body;
 		if (req.file) {
@@ -1034,6 +1039,7 @@ exports.updateActivo = async (req, res) => {
 			[id],
 		);
 
+		console.log("[ACTIVOS] Éxito - Activo actualizado:", id);
 		res.status(200).json({
 			message: "Activo actualizado exitosamente",
 			cambios: detallesCompletos,
@@ -1046,7 +1052,7 @@ exports.updateActivo = async (req, res) => {
 			const key = foto_url.split("/").pop();
 			await r2Service.deleteFromR2(key).catch(() => {});
 		}
-		console.error("[ERROR UPDATE ACTIVO]:", error.message);
+		console.error("[ERROR ACTIVOS]:", error.message);
 
 		if (error.code === "ER_DUP_ENTRY") {
 			return res.status(400).json({ error: "Registro duplicado" });
@@ -1058,11 +1064,7 @@ exports.updateActivo = async (req, res) => {
 			});
 		}
 
-		res.status(500).json({
-			error: "Error al actualizar el activo",
-			detalle:
-				process.env.NODE_ENV === "development" ? error.message : undefined,
-		});
+		res.status(500).json({ error: "Error al actualizar el activo" });
 	}
 };
 
@@ -1070,6 +1072,7 @@ exports.deleteActivo = async (req, res) => {
 	const { id } = req.params;
 
 	try {
+		console.log("[ACTIVOS] Inicio - Eliminando activo ID:", id);
 		const [activo] = await db.query(
 			"SELECT id, nombre, foto_url FROM activos WHERE id = ?",
 			[id],
@@ -1100,16 +1103,18 @@ exports.deleteActivo = async (req, res) => {
 			await r2Service.deleteFromR2(key).catch(() => {});
 		}
 
+		console.log("[ACTIVOS] Éxito - Activo eliminado:", id);
 		res.status(200).json({ message: "Activo eliminado exitosamente" });
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
-		console.error("[ERROR DELETE ACTIVO]:", error.message);
+		console.error("[ERROR ACTIVOS]:", error.message);
 		res.status(500).json({ error: "Error al eliminar el activo" });
 	}
 };
 
 exports.obtenerDatosAuxiliares = async (_req, res) => {
 	try {
+		console.log("[ACTIVOS] Inicio - Obteniendo datos auxiliares");
 		const estados = [
 			{ id: "Disponible", nombre: "Disponible" },
 			{ id: "Asignado", nombre: "Asignado" },
@@ -1134,6 +1139,7 @@ exports.obtenerDatosAuxiliares = async (_req, res) => {
 		// Consulta para obtener los dueños (usuarios)
 		const [duenos] = await db.query("SELECT id, nombre FROM usuarios");
 
+		console.log("[ACTIVOS] Éxito - Datos auxiliares obtenidos");
 		// Devuelve los datos en un objeto JSON
 		res.status(200).json({
 			tipos,
@@ -1144,16 +1150,17 @@ exports.obtenerDatosAuxiliares = async (_req, res) => {
 			estados,
 		});
 	} catch (error) {
-		console.error("Error al obtener datos auxiliares:", error);
+		console.error("[ERROR ACTIVOS]:", error.message);
 		res
 			.status(500)
-			.json({ error: "Error interno del servidor", errorCode: "SERVER_001" });
+			.json({ error: "Error interno del servidor" });
 	}
 };
 exports.validarEtiquetaSerial = async (req, res) => {
 	const { etiqueta_serial } = req.body;
 
 	try {
+		console.log("[ACTIVOS] Inicio - Validando etiqueta serial:", etiqueta_serial);
 		// Consulta la base de datos para verificar si la etiqueta serial existe
 		const [rows] = await db.query(
 			"SELECT id FROM activos WHERE etiqueta_serial = ?",
@@ -1168,9 +1175,10 @@ exports.validarEtiquetaSerial = async (req, res) => {
 		}
 
 		// Si no existe, devuelve una respuesta exitosa
+		console.log("[ACTIVOS] Éxito - Etiqueta serial disponible:", etiqueta_serial);
 		res.status(200).json({ message: "La etiqueta serial está disponible" });
 	} catch (error) {
-		console.error("[ERROR VALIDAR ETIQUETA SERIAL]:", error.message);
+		console.error("[ERROR ACTIVOS]:", error.message);
 		res.status(500).json({ error: "Error al validar la etiqueta serial" });
 	}
 };
@@ -1179,26 +1187,21 @@ exports.darDeBajaActivo = async (req, res) => {
 	const { id } = req.params;
 
 	try {
+		console.log("[ACTIVOS] Inicio - Dando de baja activo ID:", id);
 		// 2. Verificar si el activo existe
 		const [activo] = await db.query(
 			"SELECT id, estado, nombre FROM activos WHERE id = ?",
 			[id],
 		);
 		if (activo.length === 0) {
-			return res.status(404).json({
-				success: false,
-				message: "Activo no encontrado.",
-			});
+			return res.status(404).json({ error: "Activo no encontrado" });
 		}
 
 		const activoData = activo[0];
 
 		// 3. Validar si ya está dado de baja
 		if (activoData.estado === "Dado de baja") {
-			return res.status(400).json({
-				success: false,
-				message: `El activo "${activoData.nombre}" ya está dado de baja.`,
-			});
+			return res.status(400).json({ error: `El activo "${activoData.nombre}" ya está dado de baja` });
 		}
 
 		// 4. Verificar si tiene asignaciones activas
@@ -1208,10 +1211,7 @@ exports.darDeBajaActivo = async (req, res) => {
 		);
 
 		if (asignacion.length > 0) {
-			return res.status(400).json({
-				success: false,
-				message: `No se puede dar de baja: El activo "${activoData.nombre}" está asignado a ${asignacion.length} usuario(s).`,
-			});
+			return res.status(400).json({ error: `No se puede dar de baja: El activo "${activoData.nombre}" está asignado a ${asignacion.length} usuario(s)` });
 		}
 
 		await db.query("START TRANSACTION");
@@ -1232,23 +1232,18 @@ exports.darDeBajaActivo = async (req, res) => {
 		await db.query("COMMIT");
 
 		// 7. Respuesta exitosa
-		res.json({
-			success: true,
-			message: `Activo "${activoData.nombre}" dado de baja exitosamente.`,
-		});
+		console.log("[ACTIVOS] Éxito - Activo dado de baja:", id);
+		res.json({ message: `Activo "${activoData.nombre}" dado de baja exitosamente` });
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
-		console.error("Error en darDeBajaActivo:", error);
-		res.status(500).json({
-			success: false,
-			message: "Error interno al procesar la baja.",
-			error: error.message,
-		});
+		console.error("[ERROR ACTIVOS]:", error.message);
+		res.status(500).json({ error: "Error interno al procesar la baja" });
 	}
 };
 
 exports.uploadImage = async (req, res) => {
 	try {
+		console.log("[ACTIVOS] Inicio - Subiendo imagen");
 		if (!req.file) {
 			return res.status(400).json({ error: "No se recibió ninguna imagen." });
 		}
@@ -1260,9 +1255,10 @@ exports.uploadImage = async (req, res) => {
 			req.file.mimetype,
 		);
 
+		console.log("[ACTIVOS] Éxito - Imagen subida:", result.url);
 		res.json({ url: result.url });
 	} catch (error) {
-		console.error("[ERROR SUBIR IMAGEN]:", error.message);
+		console.error("[ERROR ACTIVOS]:", error.message);
 		res.status(500).json({ error: "Error al subir la imagen" });
 	}
 };
