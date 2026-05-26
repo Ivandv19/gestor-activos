@@ -27,4 +27,16 @@ const upload = multer({
 	limits: { fileSize: MAX_SIZE },
 });
 
-exports.imageUploadMiddleware = upload.single("file");
+exports.imageUploadMiddleware = (req, res, next) => {
+	upload.single("file")(req, res, (err) => {
+		if (err) {
+			if (err.code === "LIMIT_FILE_SIZE") {
+				return res
+					.status(400)
+					.json({ error: "El archivo excede el tamaño máximo de 5MB." });
+			}
+			return res.status(400).json({ error: err.message });
+		}
+		next();
+	});
+};
