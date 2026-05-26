@@ -66,4 +66,12 @@ app.get("/api/health", (_req, res) => {
 	});
 });
 
+// Global error handler
+app.use((err, _req, res, _next) => {
+	console.error("[ERROR GLOBAL]:", err.message);
+	res.status(err.status || 500).json({
+		error: err.message || "Error interno del servidor",
+	});
+});
+
 module.exports = app;
