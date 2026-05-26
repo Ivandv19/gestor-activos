@@ -126,8 +126,10 @@ exports.getDatosAuxiliares = async (_req, res) => {
 		console.log("[HISTORIAL] Éxito - getDatosAuxiliares");
 
 		res.status(200).json({
-			acciones,
-			usuarios,
+			data: {
+				acciones,
+				usuarios,
+			},
 		});
 	} catch (error) {
 		console.error("[ERROR HISTORIAL]:", error.message);
@@ -179,16 +181,18 @@ exports.registrarAccionHistorial = async (req, res) => {
 		console.log("[HISTORIAL] Éxito - registrarAccionHistorial");
 
 		res.status(201).json({
-			message: "Acción registrada correctamente en el historial.",
-			historial: {
-				id: result.insertId,
-				accion,
-				fecha: fechaRegistrada,
-				usuario_responsable,
-				usuario_asignado,
-				ubicacion_nueva,
-				detalles,
+			data: {
+				historial: {
+					id: result.insertId,
+					accion,
+					fecha: fechaRegistrada,
+					usuario_responsable,
+					usuario_asignado,
+					ubicacion_nueva,
+					detalles,
+				},
 			},
+			message: "Acción registrada correctamente en el historial.",
 		});
 	} catch (error) {
 		console.error("[ERROR HISTORIAL]:", error.message);

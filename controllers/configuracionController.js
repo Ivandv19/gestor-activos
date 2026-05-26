@@ -14,7 +14,7 @@ exports.getConfiguracionAplicacion = async (_req, res) => {
 		}
 
 		console.log("[CONFIG] Éxito - configuración de la aplicación obtenida");
-		res.json(rows[0]);
+		res.json({ data: rows[0] });
 	} catch (error) {
 		console.error("[ERROR CONFIG]:", error.message);
 		res.status(500).json({
@@ -37,11 +37,13 @@ exports.updateConfiguracionAplicacion = async (req, res) => {
 		console.log("[CONFIG] Éxito - configuración de la aplicación actualizada");
 		res.json({
 			message: "Configuración global actualizada correctamente",
-			nuevaConfiguracion: {
-				idioma,
-				zona_horaria,
-				formato_fecha,
-				formato_moneda,
+			data: {
+				nuevaConfiguracion: {
+					idioma,
+					zona_horaria,
+					formato_fecha,
+					formato_moneda,
+				},
 			},
 		});
 	} catch (error) {
@@ -78,7 +80,7 @@ exports.getPerfilUsuario = async (req, res) => {
 		}
 
 		console.log("[CONFIG] Éxito - perfil del usuario obtenido");
-		res.json(usuario);
+		res.json({ data: usuario });
 	} catch (error) {
 		console.error("[ERROR CONFIG]:", error.message);
 
@@ -185,7 +187,7 @@ exports.updatePerfilUsuario = async (req, res) => {
 		await db.query(query, values);
 
 		console.log("[CONFIG] Éxito - perfil del usuario actualizado");
-		res.json({ message: "Datos del perfil actualizados correctamente." });
+		res.json({ data: null, message: "Datos del perfil actualizados correctamente." });
 	} catch (error) {
 		console.error("[ERROR CONFIG]:", error.message);
 		res.status(500).json({
@@ -209,7 +211,7 @@ exports.uploadImage = async (req, res) => {
 		);
 
 		console.log("[CONFIG] Éxito - imagen de perfil subida");
-		res.json({ url: result.url });
+		res.json({ data: { url: result.url } });
 	} catch (error) {
 		console.error("[ERROR CONFIG]:", error.message);
 		res.status(500).json({ error: "Error al subir la imagen" });

@@ -59,10 +59,12 @@ app.use("/api/configuracion", configuracionRoutes);
 // Endpoint de salud del sistema
 app.get("/api/health", (_req, res) => {
 	res.status(200).json({
-		status: "ok",
-		uptime: process.uptime(),
+		data: {
+			status: "ok",
+			uptime: process.uptime(),
+			timestamp: new Date().toISOString(),
+		},
 		message: "Gestor de Activos Backend is running correctly!",
-		timestamp: new Date().toISOString(),
 	});
 });
 

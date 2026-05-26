@@ -162,16 +162,18 @@ exports.createGarantia = async (req, res) => {
 		console.log("[GARANTIAS] Éxito - Garantía registrada correctamente");
 
 		res.status(201).json({
-			id: result.insertId,
-			activo_id,
-			proveedor_garantia_id,
-			nombre_garantia,
-			fecha_inicio,
-			fecha_fin,
-			costo,
-			condiciones,
-			estado,
-			descripcion,
+			data: {
+				id: result.insertId,
+				activo_id,
+				proveedor_garantia_id,
+				nombre_garantia,
+				fecha_inicio,
+				fecha_fin,
+				costo,
+				condiciones,
+				estado,
+				descripcion,
+			},
 			message: "Garantía registrada correctamente",
 		});
 	} catch (error) {
@@ -312,16 +314,18 @@ exports.updateGarantia = async (req, res) => {
 		console.log("[GARANTIAS] Éxito - Garantía actualizada correctamente");
 
 		res.json({
-			id: row.id,
-			activo_id: row.activo_id,
-			proveedor_garantia_id: row.proveedor_garantia_id,
-			nombre_garantia: row.nombre_garantia,
-			fecha_inicio: row.fecha_inicio,
-			fecha_fin: row.fecha_fin,
-			costo: row.costo,
-			condiciones: row.condiciones,
-			estado: row.estado,
-			descripcion: row.descripcion,
+			data: {
+				id: row.id,
+				activo_id: row.activo_id,
+				proveedor_garantia_id: row.proveedor_garantia_id,
+				nombre_garantia: row.nombre_garantia,
+				fecha_inicio: row.fecha_inicio,
+				fecha_fin: row.fecha_fin,
+				costo: row.costo,
+				condiciones: row.condiciones,
+				estado: row.estado,
+				descripcion: row.descripcion,
+			},
 			message: "Garantía actualizada correctamente",
 		});
 	} catch (error) {
@@ -364,7 +368,7 @@ exports.deleteGarantia = async (req, res) => {
 		await db.query("DELETE FROM garantias WHERE id = ?", [id]);
 
 		console.log("[GARANTIAS] Éxito - Garantía eliminada físicamente");
-		res.json({ message: "Garantía eliminada físicamente" });
+		res.json({ data: null, message: "Garantía eliminada físicamente" });
 	} catch (error) {
 		console.error("[ERROR GARANTIAS]:", error.message);
 		res.status(500).json({ error: "Error al eliminar la garantía." });

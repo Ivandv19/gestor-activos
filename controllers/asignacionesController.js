@@ -201,13 +201,15 @@ exports.createAsignacion = async (req, res) => {
 
 		// Respuesta
 		res.json({
-			id: result.insertId,
-			activo_id,
-			usuario_id,
-			ubicacion_id,
-			fecha_asignacion,
-			fecha_devolucion,
-			comentarios: comentariosDinamicos,
+			data: {
+				id: result.insertId,
+				activo_id,
+				usuario_id,
+				ubicacion_id,
+				fecha_asignacion,
+				fecha_devolucion,
+				comentarios: comentariosDinamicos,
+			},
 			message: "Asignación creada correctamente.",
 		});
 	} catch (error) {
@@ -277,7 +279,7 @@ exports.getAsignacionPorId = async (req, res) => {
 		// Enviar la respuesta
 		console.log("[ASIGNACIONES] Éxito - obtener asignación por ID");
 		res.json({
-			asignacion: asignacionData,
+			data: { asignacion: asignacionData },
 			message: "Asignación obtenida correctamente.",
 		});
 	} catch (error) {
@@ -432,11 +434,13 @@ exports.updateAsignacion = async (req, res) => {
 
 		// Respuesta
 		res.json({
-			id,
-			fecha_devolucion,
-			usuario_id,
-			ubicacion_id,
-			comentarios: nuevoComentario,
+			data: {
+				id,
+				fecha_devolucion,
+				usuario_id,
+				ubicacion_id,
+				comentarios: nuevoComentario,
+			},
 			message: "Asignación actualizada correctamente",
 		});
 	} catch (error) {
@@ -513,11 +517,11 @@ exports.deleteAsignacion = async (req, res) => {
 
 		// Respuesta exitosa
 		res.json({
-			message: "Asignación eliminada y activo liberado correctamente",
 			data: {
 				id_asignacion_eliminada: id,
 				nombre_activo: activo_nombre,
 			},
+			message: "Asignación eliminada y activo liberado correctamente",
 		});
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
@@ -714,12 +718,14 @@ exports.obtenerDatosAuxiliares = async (req, res) => {
 
 		// Devuelve los datos en un objeto JSON
 		res.status(200).json({
-			usuarios,
-			tiposActivos,
-			proveedores,
-			ubicaciones,
-			nombre: nombreActivo,
-			foto_url: fotoActivo,
+			data: {
+				usuarios,
+				tiposActivos,
+				proveedores,
+				ubicaciones,
+				nombre: nombreActivo,
+				foto_url: fotoActivo,
+			},
 		});
 	} catch (error) {
 		console.error("[ERROR ASIGNACIONES]:", error.message);

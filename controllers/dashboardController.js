@@ -17,13 +17,15 @@ exports.getResumen = async (_req, res) => {
 		// Si no hay activos registrados, devolver ceros en todos los campos
 		if (result[0].total_activos === 0) {
 			return res.status(200).json({
-				total_activos: 0,
-				activos_disponibles: 0,
-				activos_asignados: 0,
-				activos_en_mantenimiento: 0,
-				activos_dados_de_baja: 0,
-				tendencia_mensual: { labels: [], data: [] },
-				ano_tendencia: new Date().getFullYear(),
+				data: {
+					total_activos: 0,
+					activos_disponibles: 0,
+					activos_asignados: 0,
+					activos_en_mantenimiento: 0,
+					activos_dados_de_baja: 0,
+					tendencia_mensual: { labels: [], data: [] },
+					ano_tendencia: new Date().getFullYear(),
+				},
 			});
 		}
 
@@ -82,13 +84,15 @@ exports.getResumen = async (_req, res) => {
 
 		// Devolver las estadísticas junto con la tendencia mensual y el año
 		res.status(200).json({
-			total_activos: result[0].total_activos,
-			activos_disponibles: result[0].activos_disponibles,
-			activos_asignados: result[0].activos_asignados,
-			activos_en_mantenimiento: result[0].activos_en_mantenimiento,
-			activos_dados_de_baja: result[0].activos_dados_de_baja,
-			tendencia_mensual: tendenciaMensual,
-			ano_tendencia: ano,
+			data: {
+				total_activos: result[0].total_activos,
+				activos_disponibles: result[0].activos_disponibles,
+				activos_asignados: result[0].activos_asignados,
+				activos_en_mantenimiento: result[0].activos_en_mantenimiento,
+				activos_dados_de_baja: result[0].activos_dados_de_baja,
+				tendencia_mensual: tendenciaMensual,
+				ano_tendencia: ano,
+			},
 		});
 	} catch (error) {
 		console.error("[ERROR DASHBOARD]:", error.message);
@@ -134,10 +138,12 @@ exports.getAlertas = async (_req, res) => {
 
 		// Devolver un resumen numérico de las alertas
 		res.status(200).json({
-			licencias_proximas_a_vencer: licenciasProximas[0].count || 0,
-			garantias_proximas_a_expirar: garantiasProximas[0].count || 0,
-			activos_en_mantenimiento: activosMantenimiento[0].count || 0,
-			activos_proximos_a_devolver: activosDevolver[0].count || 0,
+			data: {
+				licencias_proximas_a_vencer: licenciasProximas[0].count || 0,
+				garantias_proximas_a_expirar: garantiasProximas[0].count || 0,
+				activos_en_mantenimiento: activosMantenimiento[0].count || 0,
+				activos_proximos_a_devolver: activosDevolver[0].count || 0,
+			},
 		});
 	} catch (error) {
 		console.error("[ERROR DASHBOARD]:", error.message);

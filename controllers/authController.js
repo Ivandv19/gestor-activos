@@ -34,7 +34,7 @@ exports.registro = async (req, res) => {
 		);
 
 		console.log("[AUTH] Éxito - Usuario registrado");
-		res.status(201).json({ message: "Usuario registrado exitosamente" });
+		res.status(201).json({ data: null, message: "Usuario registrado exitosamente" });
 	} catch (error) {
 		console.error("[ERROR AUTH]:", error.message);
 		if (error.message.includes("Hash Service")) {
@@ -102,15 +102,17 @@ exports.login = async (req, res) => {
 		// 6. Respuesta exitosa (
 		console.log("[AUTH] Éxito - Usuario autenticado");
 		res.json({
-			message: "Sesión iniciada correctamente",
-			token,
-			userData: {
-				id: user.id,
-				nombre: user.nombre,
-				rol: user.rol,
-				email: user.email,
-				foto_url: user.foto_url || null,
+			data: {
+				token,
+				userData: {
+					id: user.id,
+					nombre: user.nombre,
+					rol: user.rol,
+					email: user.email,
+					foto_url: user.foto_url || null,
+				},
 			},
+			message: "Sesión iniciada correctamente",
 		});
 	} catch (error) {
 		console.error("[ERROR AUTH]:", error.message);
@@ -129,8 +131,8 @@ exports.login = async (req, res) => {
 
 // Función para validar el token JWT
 exports.test = (req, res) => {
-	res.json({
+		res.json({
+		data: { user: req.user },
 		message: "Token válido",
-		user: req.user, // Información del usuario decodificada del token
 	});
 };

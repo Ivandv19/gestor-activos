@@ -197,78 +197,68 @@ exports.getActivoById = async (req, res) => {
 		// Estructuración de la respuesta final con todos los datos del activo
 		const activo = rows[0];
 		res.status(200).json({
-			// Datos básicos del activo
-			id: activo.id,
-			nombre: activo.nombre,
+			data: {
+				id: activo.id,
+				nombre: activo.nombre,
 
-			// Información del tipo de activo
-			tipo: {
-				id: activo.tipo_id,
-				nombre: activo.tipo_nombre,
+				tipo: {
+					id: activo.tipo_id,
+					nombre: activo.tipo_nombre,
+				},
+
+				fecha_adquisicion: activo.fecha_adquisicion,
+				fecha_registro: activo.fecha_registro,
+				fecha_salida: activo.fecha_salida,
+
+				valor_compra: activo.valor_compra,
+				costo_mensual: activo.costo_mensual,
+
+				etiqueta_serial: activo.etiqueta_serial,
+				descripcion: activo.descripcion,
+
+				estado: activo.estado,
+				ubicacion: {
+					id: activo.ubicacion_id,
+					nombre: activo.ubicacion_nombre,
+				},
+
+				proveedor: {
+					id: activo.proveedor_id,
+					nombre: activo.proveedor_nombre,
+				},
+
+				foto_url: activo.foto_url,
+
+				modelo: activo.modelo,
+				version_software: activo.version_software,
+				tipo_licencia: activo.tipo_licencia,
+				fecha_vencimiento_licencia: activo.fecha_vencimiento_licencia,
+				recursos_asignados: activo.recursos_asignados,
+
+				dueno: {
+					id: activo.dueno_id,
+					nombre: activo.dueno_nombre,
+				},
+
+				condicion_fisica: activo.condicion_fisica || null,
+
+				garantia: tieneGarantia
+					? garantiasRows.map((garantia) => ({
+							id: garantia.id,
+							nombre_garantia: garantia.nombre_garantia,
+							proveedor: {
+								id: garantia.proveedor_garantia_id,
+								nombre: garantia.proveedor_garantia_nombre,
+							},
+							fecha_inicio: garantia.fecha_inicio,
+							fecha_fin: garantia.fecha_fin,
+							costo: garantia.costo,
+							condiciones: garantia.condiciones,
+							estado: garantia.estado,
+							descripcion: garantia.descripcion,
+						}))
+					: null,
 			},
-
-			// Fechas importantes
-			fecha_adquisicion: activo.fecha_adquisicion,
-			fecha_registro: activo.fecha_registro,
-			fecha_salida: activo.fecha_salida,
-
-			// Datos financieros
-			valor_compra: activo.valor_compra,
-			costo_mensual: activo.costo_mensual,
-
-			// Identificación y descripción
-			etiqueta_serial: activo.etiqueta_serial,
-			descripcion: activo.descripcion,
-
-			// Estado y ubicación
-			estado: activo.estado,
-			ubicacion: {
-				id: activo.ubicacion_id,
-				nombre: activo.ubicacion_nombre,
-			},
-
-			// Información del proveedor
-			proveedor: {
-				id: activo.proveedor_id,
-				nombre: activo.proveedor_nombre,
-			},
-
-			// Multimedia
-			foto_url: activo.foto_url,
-
-			// Datos técnicos
-			modelo: activo.modelo,
-			version_software: activo.version_software,
-			tipo_licencia: activo.tipo_licencia,
-			fecha_vencimiento_licencia: activo.fecha_vencimiento_licencia,
-			recursos_asignados: activo.recursos_asignados,
-
-			// Información del dueño/responsable
-			dueno: {
-				id: activo.dueno_id,
-				nombre: activo.dueno_nombre,
-			},
-
-			// Estado físico del activo
-			condicion_fisica: activo.condicion_fisica || null,
-
-			// Información de garantías (si existe)
-			garantia: tieneGarantia
-				? garantiasRows.map((garantia) => ({
-						id: garantia.id,
-						nombre_garantia: garantia.nombre_garantia,
-						proveedor: {
-							id: garantia.proveedor_garantia_id,
-							nombre: garantia.proveedor_garantia_nombre,
-						},
-						fecha_inicio: garantia.fecha_inicio,
-						fecha_fin: garantia.fecha_fin,
-						costo: garantia.costo,
-						condiciones: garantia.condiciones,
-						estado: garantia.estado,
-						descripcion: garantia.descripcion,
-					}))
-				: null,
 		});
 	} catch (error) {
 		console.error("[ERROR ACTIVOS]:", error.message);
@@ -465,7 +455,7 @@ exports.createActivo = async (req, res) => {
 		console.log("[ACTIVOS] Éxito - Activo creado:", `id=${activoId}, nombre="${nombre}"`);
 		res
 			.status(201)
-			.json({ id: activoId, message: "Activo creado exitosamente" });
+			.json({ data: { id: activoId }, message: "Activo creado exitosamente" });
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
 		if (foto_url) {
@@ -942,10 +932,12 @@ exports.updateActivo = async (req, res) => {
 
 		console.log("[ACTIVOS] Éxito - Activo actualizado:", id);
 		res.status(200).json({
+			data: {
+				cambios: detallesCompletos,
+				activo: updatedActivo[0],
+				garantia: updatedGarantia[0] || null,
+			},
 			message: "Activo actualizado exitosamente",
-			cambios: detallesCompletos,
-			activo: updatedActivo[0],
-			garantia: updatedGarantia[0] || null,
 		});
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
@@ -1008,7 +1000,7 @@ exports.deleteActivo = async (req, res) => {
 		}
 
 		console.log("[ACTIVOS] Éxito - Activo eliminado físicamente:", id);
-		res.status(200).json({ message: `Activo "${nombre}" eliminado físicamente` });
+		res.status(200).json({ data: null, message: `Activo "${nombre}" eliminado físicamente` });
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
 		console.error("[ERROR ACTIVOS]:", error.message);
@@ -1046,12 +1038,14 @@ exports.obtenerDatosAuxiliares = async (_req, res) => {
 		console.log("[ACTIVOS] Éxito - Datos auxiliares obtenidos");
 		// Devuelve los datos en un objeto JSON
 		res.status(200).json({
-			tipos,
-			proveedores,
-			ubicaciones,
-			proveedoresGarantia,
-			duenos,
-			estados,
+			data: {
+				tipos,
+				proveedores,
+				ubicaciones,
+				proveedoresGarantia,
+				duenos,
+				estados,
+			},
 		});
 	} catch (error) {
 		console.error("[ERROR ACTIVOS]:", error.message);
@@ -1080,7 +1074,7 @@ exports.validarEtiquetaSerial = async (req, res) => {
 
 		// Si no existe, devuelve una respuesta exitosa
 		console.log("[ACTIVOS] Éxito - Etiqueta serial disponible:", etiqueta_serial);
-		res.status(200).json({ message: "La etiqueta serial está disponible" });
+		res.status(200).json({ data: null, message: "La etiqueta serial está disponible" });
 	} catch (error) {
 		console.error("[ERROR ACTIVOS]:", error.message);
 		res.status(500).json({ error: "Error al validar la etiqueta serial" });
@@ -1137,7 +1131,7 @@ exports.darDeBajaActivo = async (req, res) => {
 
 		// 7. Respuesta exitosa
 		console.log("[ACTIVOS] Éxito - Activo dado de baja:", id);
-		res.json({ message: `Activo "${activoData.nombre}" dado de baja exitosamente` });
+		res.json({ data: null, message: `Activo "${activoData.nombre}" dado de baja exitosamente` });
 	} catch (error) {
 		await db.query("ROLLBACK").catch(() => {});
 		console.error("[ERROR ACTIVOS]:", error.message);
@@ -1160,7 +1154,7 @@ exports.uploadImage = async (req, res) => {
 		);
 
 		console.log("[ACTIVOS] Éxito - Imagen subida:", result.url);
-		res.json({ url: result.url });
+		res.json({ data: { url: result.url } });
 	} catch (error) {
 		console.error("[ERROR ACTIVOS]:", error.message);
 		res.status(500).json({ error: "Error al subir la imagen" });

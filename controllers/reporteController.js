@@ -18,7 +18,7 @@ exports.getTiposReporte = async (_req, res) => {
 		console.log("[REPORTES] Éxito - getTiposReporte");
 		// Respuesta exitosa
 		res.status(200).json({
-			tiposReporte,
+			data: { tiposReporte },
 		});
 	} catch (error) {
 		console.error("[ERROR REPORTES]:", error.message);
@@ -47,7 +47,7 @@ exports.getDatosAuxiliares = async (_req, res) => {
 
 		console.log("[REPORTES] Éxito - getDatosAuxiliares");
 		// Enviar la respuesta al cliente
-		res.json(response);
+		res.json({ data: response });
 	} catch (error) {
 		console.error("[ERROR REPORTES]:", error.message);
 		res.status(500).json({ error: "Error al obtener los datos auxiliares" });
@@ -358,19 +358,21 @@ exports.generarReporte = async (req, res) => {
 		// Construir la respuesta estándar
 		return res.json({
 			message: "Reporte generado exitosamente.",
-			tipo_reporte: tipo_reporte,
-			descripcion: descripcion,
-			filtros: {
-				tipo_activo: await getNombreTipoActivo(filtros.tipo_activo_id),
-				usuario: await getNombreUsuario(filtros.usuario_id),
-				ubicacion: await getNombreUbicacion(filtros.ubicacion_id),
-				proveedor: await getNombreProveedor(filtros.proveedor_id),
-				fecha_inicio: filtros.fecha_inicio || null,
-				fecha_fin: filtros.fecha_fin || null,
-			},
-			resultados: {
-				resumen: resumen,
-				detalles: detalles,
+			data: {
+				tipo_reporte: tipo_reporte,
+				descripcion: descripcion,
+				filtros: {
+					tipo_activo: await getNombreTipoActivo(filtros.tipo_activo_id),
+					usuario: await getNombreUsuario(filtros.usuario_id),
+					ubicacion: await getNombreUbicacion(filtros.ubicacion_id),
+					proveedor: await getNombreProveedor(filtros.proveedor_id),
+					fecha_inicio: filtros.fecha_inicio || null,
+					fecha_fin: filtros.fecha_fin || null,
+				},
+				resultados: {
+					resumen: resumen,
+					detalles: detalles,
+				},
 			},
 		});
 	} catch (error) {
