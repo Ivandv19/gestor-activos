@@ -95,6 +95,24 @@ describe("Auth Endpoints", () => {
 			expect(res.statusCode).toEqual(401);
 			expect(res.body.error).toBe("Contraseña incorrecta");
 		});
+
+		it("should fail with 503 if hash service is unavailable", async () => {
+			db.query.mockResolvedValueOnce([[{ contrasena: "hash" }], []]);
+			hashService.verify.mockRejectedValueOnce(
+				new Error("Hash Service Error: fetch failed"),
+			);
+
+			const res = await request(app).post("/api/auth/login").send({
+				email: "test@example.com",
+				contrasena: "password123",
+			});
+
+			expect(res.statusCode).toEqual(503);
+			expect(res.body.error).toBe(
+				"El servicio de autenticación no está disponible.",
+			);
+			expect(res.body.errorCode).toBe("AUTH_003");
+		});
 	});
 
 	describe("POST /api/auth/registro", () => {

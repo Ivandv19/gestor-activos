@@ -170,6 +170,12 @@ exports.login = async (req, res) => {
 		});
 	} catch (error) {
 		console.error("[LOGIN] Error crítico:", error.message);
+		if (error.message.includes("Hash Service")) {
+			return res.status(503).json({
+				error: "El servicio de autenticación no está disponible.",
+				errorCode: "AUTH_003",
+			});
+		}
 		res.status(500).json({
 			error: "Error interno al iniciar sesión",
 			errorCode: "SERVER_001",

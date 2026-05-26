@@ -43,27 +43,22 @@ class HashService {
 	 * @returns {Promise<boolean>} True if it matches
 	 */
 	async verify(password, hash) {
-		try {
-			const response = await fetch(`${this.url}/verify`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"x-api-key": this.apiKey,
-				},
-				body: JSON.stringify({ password, hash }),
-			});
+		const response = await fetch(`${this.url}/verify`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"x-api-key": this.apiKey,
+			},
+			body: JSON.stringify({ password, hash }),
+		});
 
-			if (!response.ok) {
-				const errorText = await response.text();
-				throw new Error(`Hash Service Error: ${errorText}`);
-			}
-
-			const result = await response.json();
-			return result.data.match;
-		} catch (error) {
-			console.error("[HashService] Error verifying password:", error.message);
-			return false; // Safely return false on error
+		if (!response.ok) {
+			const errorText = await response.text();
+			throw new Error(`Hash Service Error: ${errorText}`);
 		}
+
+		const result = await response.json();
+		return result.data.match;
 	}
 }
 
