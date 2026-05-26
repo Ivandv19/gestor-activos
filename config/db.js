@@ -1,5 +1,4 @@
 const mysql = require("mysql2"); // Importamos el módulo `mysql2` para trabajar con MySQL
-require("dotenv").config(); // Importamos el módulo `dotenv` para cargar variables de entorno
 
 // Creamos un pool de conexiones a la base de datos
 const pool = mysql.createPool({

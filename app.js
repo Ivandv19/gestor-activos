@@ -4,7 +4,6 @@ const morgan = require("morgan");
 const helmet = require("helmet");
 const cors = require("cors");
 const path = require("node:path");
-require("dotenv").config();
 const _pool = require("./config/db");
 
 // Documentación Swagger
