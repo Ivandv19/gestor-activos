@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const path = require("node:path");
 const _pool = require("./config/db");
+const env = require("./config/env");
 
 // Documentación Swagger
 const { swaggerDocs, swaggerUi } = require("./swagger/swagger");
@@ -23,7 +24,7 @@ const configuracionRoutes = require("./routes/configuracionRoutes");
 const app = express();
 
 // Seguridad y configuración de Proxy
-app.use(cors());
+app.use(cors({ origin: env.FRONTEND_URL }));
 app.set("trust proxy", 1);
 
 // Configuración de Helmet y Seguridad
