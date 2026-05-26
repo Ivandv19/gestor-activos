@@ -1,9 +1,9 @@
-const pool = require("../config/db");
+const db = require("../config/db");
 
 exports.getResumen = async (_req, res) => {
 	try {
 		console.log("[DASHBOARD] Inicio - Obteniendo resumen del dashboard");
-		const [result] = await pool.query(`
+		const [result] = await db.query(`
       SELECT 
         COUNT(*) AS total_activos,
         SUM(CASE WHEN estado = 'Disponible' THEN 1 ELSE 0 END) AS activos_disponibles,
@@ -33,7 +33,7 @@ exports.getResumen = async (_req, res) => {
 		fechaHaceUnAno.setFullYear(fechaActual.getFullYear() - 1);
 
 		// Consulta para obtener la tendencia mensual (incluyendo todos los meses)
-		const [tendenciaMensualResult] = await pool.query(
+		const [tendenciaMensualResult] = await db.query(
 			`
       WITH meses AS (
         SELECT 'Ene' AS mes, 1 AS numero UNION ALL
@@ -101,28 +101,28 @@ exports.getResumen = async (_req, res) => {
 exports.getAlertas = async (_req, res) => {
 	try {
 		console.log("[DASHBOARD] Inicio - Obteniendo alertas del dashboard");
-		const [licenciasProximas] = await pool.query(`
+		const [licenciasProximas] = await db.query(`
             SELECT COUNT(*) AS count
             FROM activos
             WHERE activo = 1 AND fecha_vencimiento_licencia IS NOT NULL AND fecha_vencimiento_licencia BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
         `);
 
 		// Consulta para contar garantías próximas a expirar
-		const [garantiasProximas] = await pool.query(`
+		const [garantiasProximas] = await db.query(`
             SELECT COUNT(*) AS count
             FROM garantias
             WHERE activo = 1 AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
           `);
 
 		// Consulta para contar activos en mantenimiento
-		const [activosMantenimiento] = await pool.query(`
+		const [activosMantenimiento] = await db.query(`
             SELECT COUNT(*) AS count
             FROM activos
             WHERE activo = 1 AND estado = 'En mantenimiento';
         `);
 
 		// Consulta para contar activos próximos a devolver
-		const [activosDevolver] = await pool.query(`
+		const [activosDevolver] = await db.query(`
             SELECT COUNT(*) AS count
             FROM asignaciones
             WHERE activo = 1 AND fecha_devolucion BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
