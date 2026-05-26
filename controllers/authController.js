@@ -72,7 +72,7 @@ exports.registro = async (req, res) => {
 		// Guardar el usuario en la base de datos
 		console.log("[REGISTRO] Guardando usuario en BD");
 		await db.query(
-			"INSERT INTO usuarios (nombre, email, contrasena, departamento, fecha_ingreso, rol) VALUES (?, ?, ?, ?, ?, ?)",
+			"INSERT INTO usuarios (nombre, email, contrasena, departamento, fecha_ingreso, rol, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())",
 			[nombre, email, hashedPassword, departamento, fecha_ingreso, rol],
 		);
 
