@@ -79,10 +79,10 @@ describe("Reporte Endpoints", () => {
 			const res = await request(app).get("/api/reportes/tipos");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("tiposReporte");
-			expect(res.body.tiposReporte).toHaveLength(2);
-			expect(res.body.tiposReporte[0]).toHaveProperty("id", 1);
-			expect(res.body.tiposReporte[0]).toHaveProperty(
+			expect(res.body.data).toHaveProperty("tiposReporte");
+			expect(res.body.data.tiposReporte).toHaveLength(2);
+			expect(res.body.data.tiposReporte[0]).toHaveProperty("id", 1);
+			expect(res.body.data.tiposReporte[0]).toHaveProperty(
 				"nombre",
 				"Activos por estado",
 			);
@@ -132,12 +132,12 @@ describe("Reporte Endpoints", () => {
 			const res = await request(app).get("/api/reportes/datos-auxiliares");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("tiposActivo");
-			expect(res.body).toHaveProperty("usuarios");
-			expect(res.body).toHaveProperty("ubicaciones");
-			expect(res.body).toHaveProperty("proveedores");
-			expect(res.body.tiposActivo).toHaveLength(2);
-			expect(res.body.usuarios).toHaveLength(2);
+			expect(res.body.data).toHaveProperty("tiposActivo");
+			expect(res.body.data).toHaveProperty("usuarios");
+			expect(res.body.data).toHaveProperty("ubicaciones");
+			expect(res.body.data).toHaveProperty("proveedores");
+			expect(res.body.data.tiposActivo).toHaveLength(2);
+			expect(res.body.data.usuarios).toHaveLength(2);
 		});
 
 		it("should return 500 on database error", async () => {
@@ -182,9 +182,9 @@ describe("Reporte Endpoints", () => {
 				"message",
 				"Reporte generado exitosamente.",
 			);
-			expect(res.body).toHaveProperty("tipo_reporte", "Activos por estado");
-			expect(res.body.resultados).toHaveProperty("resumen");
-			expect(res.body.resultados).toHaveProperty("detalles");
+			expect(res.body.data).toHaveProperty("tipo_reporte", "Activos por estado");
+			expect(res.body.data.resultados).toHaveProperty("resumen");
+			expect(res.body.data.resultados).toHaveProperty("detalles");
 		});
 
 		it("should return 400 when tipo_id is missing", async () => {

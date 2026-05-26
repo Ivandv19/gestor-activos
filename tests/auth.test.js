@@ -57,8 +57,8 @@ describe("Auth Endpoints", () => {
 			});
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("token");
-			expect(res.body.userData.email).toBe("test@example.com");
+			expect(res.body.data).toHaveProperty("token");
+			expect(res.body.data.userData.email).toBe("test@example.com");
 			expect(db.query).toHaveBeenCalled();
 			expect(hashService.verify).toHaveBeenCalledWith(
 				"password123",

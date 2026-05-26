@@ -55,15 +55,15 @@ describe("Dashboard Endpoints", () => {
 			const res = await request(app).get("/api/dashboard/resumen");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("total_activos", 10);
-			expect(res.body).toHaveProperty("activos_disponibles", 4);
-			expect(res.body).toHaveProperty("activos_asignados", 3);
-			expect(res.body).toHaveProperty("activos_en_mantenimiento", 2);
-			expect(res.body).toHaveProperty("activos_dados_de_baja", 1);
-			expect(res.body).toHaveProperty("tendencia_mensual");
-			expect(res.body.tendencia_mensual).toHaveProperty("labels");
-			expect(res.body.tendencia_mensual).toHaveProperty("data");
-			expect(res.body).toHaveProperty("ano_tendencia", 2025);
+			expect(res.body.data).toHaveProperty("total_activos", 10);
+			expect(res.body.data).toHaveProperty("activos_disponibles", 4);
+			expect(res.body.data).toHaveProperty("activos_asignados", 3);
+			expect(res.body.data).toHaveProperty("activos_en_mantenimiento", 2);
+			expect(res.body.data).toHaveProperty("activos_dados_de_baja", 1);
+			expect(res.body.data).toHaveProperty("tendencia_mensual");
+			expect(res.body.data.tendencia_mensual).toHaveProperty("labels");
+			expect(res.body.data.tendencia_mensual).toHaveProperty("data");
+			expect(res.body.data).toHaveProperty("ano_tendencia", 2025);
 		});
 
 		it("should return zeros when no activos exist", async () => {
@@ -74,15 +74,15 @@ describe("Dashboard Endpoints", () => {
 			const res = await request(app).get("/api/dashboard/resumen");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("total_activos", 0);
-			expect(res.body).toHaveProperty("activos_disponibles", 0);
-			expect(res.body).toHaveProperty("activos_asignados", 0);
-			expect(res.body).toHaveProperty("activos_en_mantenimiento", 0);
-			expect(res.body).toHaveProperty("activos_dados_de_baja", 0);
-			expect(res.body).toHaveProperty("tendencia_mensual");
-			expect(res.body.tendencia_mensual.labels).toEqual([]);
-			expect(res.body.tendencia_mensual.data).toEqual([]);
-			expect(res.body).toHaveProperty("ano_tendencia");
+			expect(res.body.data).toHaveProperty("total_activos", 0);
+			expect(res.body.data).toHaveProperty("activos_disponibles", 0);
+			expect(res.body.data).toHaveProperty("activos_asignados", 0);
+			expect(res.body.data).toHaveProperty("activos_en_mantenimiento", 0);
+			expect(res.body.data).toHaveProperty("activos_dados_de_baja", 0);
+			expect(res.body.data).toHaveProperty("tendencia_mensual");
+			expect(res.body.data.tendencia_mensual.labels).toEqual([]);
+			expect(res.body.data.tendencia_mensual.data).toEqual([]);
+			expect(res.body.data).toHaveProperty("ano_tendencia");
 		});
 
 		it("should return 500 on database error", async () => {
@@ -111,10 +111,10 @@ describe("Dashboard Endpoints", () => {
 			const res = await request(app).get("/api/dashboard/alertas");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("licencias_proximas_a_vencer", 3);
-			expect(res.body).toHaveProperty("garantias_proximas_a_expirar", 5);
-			expect(res.body).toHaveProperty("activos_en_mantenimiento", 2);
-			expect(res.body).toHaveProperty("activos_proximos_a_devolver", 4);
+			expect(res.body.data).toHaveProperty("licencias_proximas_a_vencer", 3);
+			expect(res.body.data).toHaveProperty("garantias_proximas_a_expirar", 5);
+			expect(res.body.data).toHaveProperty("activos_en_mantenimiento", 2);
+			expect(res.body.data).toHaveProperty("activos_proximos_a_devolver", 4);
 		});
 
 		it("should return zeros when all counts are null", async () => {
@@ -129,10 +129,10 @@ describe("Dashboard Endpoints", () => {
 			const res = await request(app).get("/api/dashboard/alertas");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("licencias_proximas_a_vencer", 0);
-			expect(res.body).toHaveProperty("garantias_proximas_a_expirar", 0);
-			expect(res.body).toHaveProperty("activos_en_mantenimiento", 0);
-			expect(res.body).toHaveProperty("activos_proximos_a_devolver", 0);
+			expect(res.body.data).toHaveProperty("licencias_proximas_a_vencer", 0);
+			expect(res.body.data).toHaveProperty("garantias_proximas_a_expirar", 0);
+			expect(res.body.data).toHaveProperty("activos_en_mantenimiento", 0);
+			expect(res.body.data).toHaveProperty("activos_proximos_a_devolver", 0);
 		});
 
 		it("should return 500 on database error", async () => {

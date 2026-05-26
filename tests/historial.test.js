@@ -175,10 +175,10 @@ describe("Historial Endpoints", () => {
 			const res = await request(app).get("/api/historial/datos-auxiliares");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toHaveProperty("acciones");
-			expect(res.body.acciones).toHaveLength(2);
-			expect(res.body).toHaveProperty("usuarios");
-			expect(res.body.usuarios).toHaveLength(2);
+			expect(res.body.data).toHaveProperty("acciones");
+			expect(res.body.data.acciones).toHaveLength(2);
+			expect(res.body.data).toHaveProperty("usuarios");
+			expect(res.body.data.usuarios).toHaveLength(2);
 		});
 
 		it("should return 404 if no acciones found", async () => {
@@ -233,8 +233,8 @@ describe("Historial Endpoints", () => {
 			expect(res.statusCode).toEqual(201);
 			expect(res.body).toHaveProperty("message");
 			expect(res.body.message).toContain("registrada correctamente");
-			expect(res.body).toHaveProperty("historial");
-			expect(res.body.historial).toHaveProperty("accion", "Mantenimiento");
+			expect(res.body.data).toHaveProperty("historial");
+			expect(res.body.data.historial).toHaveProperty("accion", "Mantenimiento");
 		});
 
 		it("should return 404 if activo not found", async () => {
@@ -287,8 +287,8 @@ describe("Historial Endpoints", () => {
 				.send({ accion: "Revisión" });
 
 			expect(res.statusCode).toEqual(201);
-			expect(res.body.historial).toHaveProperty("fecha");
-			expect(res.body.historial.fecha).toMatch(
+			expect(res.body.data.historial).toHaveProperty("fecha");
+			expect(res.body.data.historial.fecha).toMatch(
 				/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
 			);
 		});

@@ -124,7 +124,7 @@ describe("Activos Endpoints", () => {
 			const res = await request(app).get("/api/gestion-activos/activos/1");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.nombre).toBe("Laptop 1");
+			expect(res.body.data.nombre).toBe("Laptop 1");
 		});
 
 		it("should return 404 if asset not found", async () => {
@@ -155,7 +155,7 @@ describe("Activos Endpoints", () => {
 				.send(newAsset);
 
 			expect(res.statusCode).toEqual(201);
-			expect(res.body.id).toBe(10);
+			expect(res.body.data.id).toBe(10);
 		});
 
 		it("should fail with 400 if validation fails", async () => {
@@ -343,12 +343,12 @@ describe("Activos Endpoints", () => {
 			);
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.tipos).toHaveLength(1);
-			expect(res.body.proveedores).toHaveLength(1);
-			expect(res.body.ubicaciones).toHaveLength(1);
-			expect(res.body.proveedoresGarantia).toHaveLength(1);
-			expect(res.body.duenos).toHaveLength(1);
-			expect(res.body.estados).toHaveLength(4);
+			expect(res.body.data.tipos).toHaveLength(1);
+			expect(res.body.data.proveedores).toHaveLength(1);
+			expect(res.body.data.ubicaciones).toHaveLength(1);
+			expect(res.body.data.proveedoresGarantia).toHaveLength(1);
+			expect(res.body.data.duenos).toHaveLength(1);
+			expect(res.body.data.estados).toHaveLength(4);
 		});
 
 		it("should return 200 with empty arrays when tables are empty", async () => {
@@ -363,12 +363,12 @@ describe("Activos Endpoints", () => {
 			);
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.tipos).toEqual([]);
-			expect(res.body.proveedores).toEqual([]);
-			expect(res.body.ubicaciones).toEqual([]);
-			expect(res.body.proveedoresGarantia).toEqual([]);
-			expect(res.body.duenos).toEqual([]);
-			expect(res.body.estados).toHaveLength(4);
+			expect(res.body.data.tipos).toEqual([]);
+			expect(res.body.data.proveedores).toEqual([]);
+			expect(res.body.data.ubicaciones).toEqual([]);
+			expect(res.body.data.proveedoresGarantia).toEqual([]);
+			expect(res.body.data.duenos).toEqual([]);
+			expect(res.body.data.estados).toHaveLength(4);
 		});
 
 		it("should return 500 on DB error", async () => {

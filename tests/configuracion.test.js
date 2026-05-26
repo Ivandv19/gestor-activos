@@ -79,10 +79,10 @@ describe("Configuración Endpoints", () => {
 			const res = await request(app).get("/api/configuracion/aplicacion");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.idioma).toEqual("es");
-			expect(res.body.zona_horaria).toEqual("UTC-5");
-			expect(res.body.formato_fecha).toEqual("DD/MM/YYYY");
-			expect(res.body.formato_moneda).toEqual("USD");
+			expect(res.body.data.idioma).toEqual("es");
+			expect(res.body.data.zona_horaria).toEqual("UTC-5");
+			expect(res.body.data.formato_fecha).toEqual("DD/MM/YYYY");
+			expect(res.body.data.formato_moneda).toEqual("USD");
 		});
 
 		it("should return 404 when config not found", async () => {
@@ -119,7 +119,7 @@ describe("Configuración Endpoints", () => {
 
 			expect(res.statusCode).toEqual(200);
 			expect(res.body).toHaveProperty("message");
-			expect(res.body.nuevaConfiguracion.idioma).toEqual("es");
+			expect(res.body.data.nuevaConfiguracion.idioma).toEqual("es");
 		});
 
 		it("should return 400 when missing required fields", async () => {
@@ -197,7 +197,7 @@ describe("Configuración Endpoints", () => {
 			const res = await request(app).get("/api/configuracion/perfil");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body).toEqual(mockUser);
+			expect(res.body.data).toEqual(mockUser);
 		});
 
 		it("should return 400 when user ID not provided", async () => {

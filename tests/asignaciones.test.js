@@ -121,7 +121,7 @@ describe("Asignaciones Endpoints", () => {
 				.send(newAsignacion);
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.id).toBe(50);
+			expect(res.body.data.id).toBe(50);
 			expect(res.body.message).toContain("creada correctamente");
 		});
 
@@ -192,7 +192,7 @@ describe("Asignaciones Endpoints", () => {
 			const res = await request(app).get("/api/asignaciones/1");
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.asignacion.id).toBe(1);
+			expect(res.body.data.asignacion.id).toBe(1);
 			expect(res.body.message).toContain("obtenida correctamente");
 		});
 
@@ -371,11 +371,11 @@ describe("Asignaciones Endpoints", () => {
 			);
 
 			expect(res.statusCode).toEqual(200);
-			expect(res.body.usuarios).toHaveLength(1);
-			expect(res.body.tiposActivos).toHaveLength(1);
-			expect(res.body.proveedores).toHaveLength(1);
-			expect(res.body.ubicaciones).toHaveLength(1);
-			expect(res.body.nombre).toBe("Laptop Dell");
+			expect(res.body.data.usuarios).toHaveLength(1);
+			expect(res.body.data.tiposActivos).toHaveLength(1);
+			expect(res.body.data.proveedores).toHaveLength(1);
+			expect(res.body.data.ubicaciones).toHaveLength(1);
+			expect(res.body.data.nombre).toBe("Laptop Dell");
 		});
 
 		it("should fail with 500 on DB error", async () => {

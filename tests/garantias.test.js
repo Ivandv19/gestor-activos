@@ -145,9 +145,9 @@ describe("Garantias Endpoints", () => {
 			const res = await request(app).post("/api/garantias").send(validGarantia);
 
 			expect(res.statusCode).toEqual(201);
-			expect(res.body).toHaveProperty("id", 1);
-			expect(res.body).toHaveProperty("activo_id", 1);
-			expect(res.body).toHaveProperty("nombre_garantia", "Garantía Extendida");
+			expect(res.body.data).toHaveProperty("id", 1);
+			expect(res.body.data).toHaveProperty("activo_id", 1);
+			expect(res.body.data).toHaveProperty("nombre_garantia", "Garantía Extendida");
 			expect(res.body).toHaveProperty(
 				"message",
 				"Garantía registrada correctamente",
