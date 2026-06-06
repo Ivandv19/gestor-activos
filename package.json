@@ -3,6 +3,7 @@
 	"version": "1.0.0",
 	"scripts": {
 		"test": "jest",
+		"test:bun": "bun test --preload ./tests/setup.js",
 		"start": "node dist/server.js",
 		"dev": "tsx watch server.ts",
 		"build": "tsc",
