@@ -35,4 +35,4 @@ ENV SERVER_PORT=3030
 EXPOSE 3030
 
 # Iniciar la aplicación
-CMD ["bun", "run", "server.js"]
+CMD ["bun", "run", "server.ts"]

@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "gestor-activos-it",
+      "name": "nemi-api",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.1053.0",
         "bcrypt": "^6.0.0",
